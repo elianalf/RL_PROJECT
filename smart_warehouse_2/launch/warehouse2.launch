@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<launch>
+  <arg name="paused" default="false" doc="Start gazebo in paused mode" />
+  
+ 
+  <arg name="world"  default="small_office"/>  <!-- empty, small_office, ... (see ../worlds) -->
+  <arg name="robot"  default="full"/>         <!--     full, lower_body, foot -->
+  <arg name="gzpose" default="-x 0.0 -y 0.0 -z 0.0 -R 0.0 -P 0.0 -Y 0.0"/>
+  <arg name="gui" default="true"/>
+  <arg name="debug" default="false"/>
+
+  <env name="GAZEBO_MODEL_PATH" value="$(find smart_warehouse_2)/models:$(optenv GAZEBO_MODEL_PATH)" />
+
+  <!-- remap topics to conform to ROS-I specifications -->
+  <remap from="/arm_controller/follow_joint_trajectory" to="/joint_trajectory_action" />
+  <remap from="/arm_controller/state" to="/feedback_states" />
+  <remap from="/arm_controller/command" to="/joint_path_command"/>
+  
+  <!-- start up world -->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(find smart_warehouse_2)/worlds/warehouse_2.world"/>   
+		<arg name="gui" value="$(arg gui)"/>
+    <arg name="debug" value="$(arg debug)"/>
+  </include>
+   
+    <param name="rgbd_description" command="$(find xacro)/xacro '$(find smart_warehouse_2)/urdf/rgbd.xacro'" />
+    <node pkg="gazebo_ros" type="spawn_model" name="spawn_model" args="-urdf -param /rgbd_description -model camera -x -1.5 -y 0 -z 2 -R 0.0 -P 1.57 -Y 0.0" />
+   <!-- <node pkg="tf" type="static_transform_publisher" name="camera_transformation" args="-1.5 0 2 0.0 1.57 0.0 world rgbd_link 100" /> -->
+    
+  <!-- urdf xml robot description loaded on the Parameter Server, converting the xacro into a proper urdf file-->
+  <include file="$(find abb_irb6640_gazebo)/launch/load_irb6640_185_280.launch" />
+  <!-- push robot_description to factory and spawn robot in gazebo -->
+  <node name="abb_irb6640_spawn" pkg="gazebo_ros" type="spawn_model" output="screen" args="-urdf -param robot_description -x 0.5 -y -1.5 -z 0 -Y 3.14 -model abb_irb6640_185_280" />
+
+    <!-- convert joint states to TF transforms for rviz, etc -->
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"
+  output="screen">
+  </node>
+
+  <!-- init and start Gazebo ros_control interface -->
+  <include file="$(find abb_irb6640_gazebo)/launch/irb6640_185_280_control.launch"/> 
+
+</launch>
