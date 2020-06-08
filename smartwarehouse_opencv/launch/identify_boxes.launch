@@ -1,0 +1,32 @@
+<?xml version="1.0" ?>
+
+<launch>
+
+  <node pkg="smartwarehouse_opencv" name="img_elaboration" type="img_elaboration" output="screen">
+
+    <param name="rate" type="int" value="30" />
+    <param name="img_left_topic" type="string" value="/depth_camera/depth_camera/image_raw" />
+    <param name="depth_img_topic" type="string" value="/depth_camera/depth/disparity" />
+	 <param name="camera_left_info_topic" type="string" value="/depth_camera/depth_camera/camera_info" />
+
+    <param name="set_RGB" type="bool" value="false" />
+    <!--Change parameters if you want change coluors -->
+    <!-- 1: red-->
+    <param name="low_r_1" type="int" value="5" />
+    <param name="high_r_1" type="int" value="225" />
+    <param name="low_g_1" type="int" value="0" />
+    <param name="high_g_1" type="int" value="1" />
+    <param name="low_b_1" type="int" value="0" />
+    <param name="high_b_1" type="int" value="1" />
+    <!-- 2: blue-->
+    <param name="low_r_2" type="int" value="0" />
+    <param name="high_r_2" type="int" value="1" />
+    <param name="low_g_2" type="int" value="0" />
+    <param name="high_g_2" type="int" value="1" />
+    <param name="low_b_2" type="int" value="5" />
+    <param name="high_b_2" type="int" value="225" />  
+      
+      
+  </node>
+
+</launch>
