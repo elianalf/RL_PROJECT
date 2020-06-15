@@ -18,7 +18,7 @@ PICK_PLACE_TASK::PICK_PLACE_TASK(string name_) :
    Rot_matrix_.setRPY(0, 0, 3.14); //rotation matrix to transform in robot base frame
    start_pose.orientation.x = 0;
    start_pose.orientation.y = 0.977;
-   start_pose.orientation.w = 0;
+   start_pose.orientation.z = 0;
 	start_pose.orientation.w = 0.212;
 	start_pose.position.x = 1.91;
 	start_pose.position.y = 0;
@@ -29,8 +29,8 @@ PICK_PLACE_TASK::PICK_PLACE_TASK(string name_) :
 	place_pose = start_pose;
 	
 	double pxo = -1.4;
-   double pyo = -3.8;
-   double pzo = 0.2;
+   double pyo = -2.8;
+   double pzo = 0.15;
 	place_pose.position.x = (Rot_matrix_[0].x() * pxo)+(Rot_matrix_[0].y() * pyo)+(Rot_matrix_[0].z()* pzo) + 0.5;
    place_pose.position.y = (Rot_matrix_[1].x() * pxo)+(Rot_matrix_[1].y() * pyo)+(Rot_matrix_[1].z()* pzo) - 1.5;
    place_pose.position.z = (Rot_matrix_[2].x() * pxo)+(Rot_matrix_[2].y() * pyo)+(Rot_matrix_[2].z()* pzo) + 0.2;
@@ -110,7 +110,8 @@ void PICK_PLACE_TASK::moveit_abb(double px, double py, double pz){
    ROS_INFO_NAMED("abb_moveit_info", "Visualizing target pose %s", success ? "" : "FAILED");  
    move_group.move();
    usleep(10000);
-   system("rosrun gazebo_ros_link_attacher detach.py");
+   const char* com_line="rosrun gazebo_ros_link_attacher detach.py";
+   system(com_line);
 	usleep(50000);
 	success = false;
 	
@@ -120,11 +121,14 @@ void PICK_PLACE_TASK::moveit_abb(double px, double py, double pz){
    move_group.move();
    usleep(5000);
    
+   place_pose.position.x -= 0.3;
+   //place_pose.position.y += ;
+   
    smart_warehouse_2::box_posResult result;
    result.x_reached=px;
    result.y_reached=py;
    result.z_reached=pz;
- 
+   
    /***************************************************
    METTERE UN VERIFICA SUL SETTAGGIO A SUCCEEDED**********
    ****************************************/
