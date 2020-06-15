@@ -1,5 +1,7 @@
+<?xml version="1.0" ?>
 <sdf version='1.6'>
   <world name='default'>
+    <plugin name="ros_link_attacher_plugin" filename="libgazebo_ros_link_attacher.so"/>
     <scene>
       <shadows>0</shadows>
       <ambient>0.4 0.4 0.4 1</ambient>
@@ -118,16 +120,24 @@
             </mesh>
           </geometry>
         </visual>
-        <self_collide>0</self_collide>
+        <self_collide>1</self_collide>
         <enable_wind>0</enable_wind>
         <kinematic>0</kinematic>
       </link>
       <pose frame=''>-1.4 0.7 0 0 -0 0</pose>
     </model>
     <model name='box_red'>
-      <static>1</static>
+      <static>0</static>
       <link name='link'>
+        <collision name="collision">
         <pose frame=''>0 0 0 0 -0 0</pose>
+        <geometry>
+         <mesh>
+          <uri>model://box_red/meshes/box_red.dae</uri>
+          <scale>0.5 0.5 0.5</scale>
+         </mesh>
+        </geometry>
+       </collision>
         <visual name='visual'>
           <geometry>
             <mesh>
@@ -136,16 +146,36 @@
             </mesh>
           </geometry>
         </visual>
+        <inertial>
+          <mass>0.5</mass>
+          <inertia>
+            <ixx>0.00606</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.0121</iyy>
+            <iyz>0</iyz>
+            <izz>0.00606</izz>
+          </inertia>
+        </inertial>
         <self_collide>0</self_collide>
         <enable_wind>0</enable_wind>
         <kinematic>0</kinematic>
       </link>
       <pose frame=''>-1.4 -0.4 0.2 0 -0 0</pose>
     </model>
+    
     <model name='box_blue'>
-      <static>1</static>
-      <link name='link'>
+      <static>0</static>
+       <link name='link'>
+       <collision name="collision">
         <pose frame=''>0 0 0 0 -0 0</pose>
+        <geometry>
+         <mesh>
+          <uri>model://box_blue/meshes/box_blue.dae</uri>
+          <scale>0.5 0.5 0.5</scale>
+         </mesh>
+        </geometry>
+       </collision> 
         <visual name='visual'>
           <geometry>
             <mesh>
@@ -154,7 +184,18 @@
             </mesh>
           </geometry>
         </visual>
-        <self_collide>0</self_collide>
+        <inertial>
+          <mass>0.5</mass>
+          <inertia>
+            <ixx>0.00606</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.0121</iyy>
+            <iyz>0</iyz>
+            <izz>0.00606</izz>
+          </inertia>
+        </inertial>
+        <self_collide>1</self_collide>
         <enable_wind>0</enable_wind>
         <kinematic>0</kinematic>
       </link>
@@ -540,7 +581,7 @@
       <elevation>0</elevation>
       <heading_deg>0</heading_deg>
     </spherical_coordinates>
-    <model name='box_blue_clone'>
+    <model name='box_blue_1'>
       <static>1</static>
       <link name='link'>
         <pose frame=''>0 0 0 0 -0 0</pose>
@@ -558,7 +599,7 @@
       </link>
       <pose frame=''>-0.892189 -0.376787 0.215866 0 -0 0</pose>
     </model>
-    <model name='box_blue_clone_clone'>
+    <model name='box_blue_2'>
       <static>1</static>
       <link name='link'>
         <pose frame=''>0 0 0 0 -0 0</pose>
@@ -576,7 +617,7 @@
       </link>
       <pose frame=''>-0.981254 -0.549653 0.215866 0 -0 0</pose>
     </model>
-    <model name='box_red_clone'>
+    <model name='box_red_1'>
       <static>1</static>
       <link name='link'>
         <pose frame=''>0 0 0 0 -0 0</pose>
@@ -594,7 +635,7 @@
       </link>
       <pose frame=''>-1.22815 -0.194135 0.219289 0 -0 0</pose>
     </model>
-    <model name='box_blue_clone_clone_clone'>
+    <model name='box_blue_3'>
       <static>1</static>
       <link name='link'>
         <pose frame=''>0 0 0 0 -0 0</pose>
@@ -612,7 +653,7 @@
       </link>
       <pose frame=''>-0.967767 -0.187743 0.215866 0 -0 0</pose>
     </model>
-    <model name='box_blue_clone_clone_clone_0'>
+    <model name='box_blue_4'>
       <static>1</static>
       <link name='link'>
         <pose frame=''>0 0 0 0 -0 0</pose>
@@ -630,7 +671,7 @@
       </link>
       <pose frame=''>-0.63424 -0.537385 0.215866 0 -0 0</pose>
     </model>
-    <model name='box_red_clone_clone'>
+    <model name='box_red_2'>
       <static>1</static>
       <link name='link'>
         <pose frame=''>0 0 0 0 -0 0</pose>
@@ -648,7 +689,7 @@
       </link>
       <pose frame=''>-0.640768 -0.187247 0.219289 0 -0 0</pose>
     </model>
-    <model name='box_red_clone_clone_0'>
+    <model name='box_red_3'>
       <static>1</static>
       <link name='link'>
         <pose frame=''>0 0 0 0 -0 0</pose>
@@ -666,7 +707,7 @@
       </link>
       <pose frame=''>-0.938003 0.148224 0.219289 0 -0 0</pose>
     </model>
-    <model name='box_red_clone_clone_1'>
+    <model name='box_red_4'>
       <static>1</static>
       <link name='link'>
         <pose frame=''>0 0 0 0 -0 0</pose>
@@ -684,7 +725,7 @@
       </link>
       <pose frame=''>-0.946755 0.505999 0.219289 0 -0 0</pose>
     </model>
-    <model name='box_red_clone_clone_2'>
+    <model name='box_red_5'>
       <static>1</static>
       <link name='link'>
         <pose frame=''>0 0 0 0 -0 0</pose>
@@ -702,7 +743,7 @@
       </link>
       <pose frame=''>-0.620332 0.156611 0.219289 0 -0 0</pose>
     </model>
-    <model name='box_blue_clone_clone_clone_clone'>
+    <model name='box_blue_5'>
       <static>1</static>
       <link name='link'>
         <pose frame=''>0 0 0 0 -0 0</pose>
@@ -735,7 +776,7 @@
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
-      <model name='box_blue_clone'>
+      <model name='box_blue_1'>
         <pose frame=''>-1.22355 0.151198 0.215866 0 -0 0</pose>
         <scale>1 1 1</scale>
         <link name='link'>
@@ -745,7 +786,7 @@
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
-      <model name='box_blue_clone_clone'>
+      <model name='box_blue_2'>
         <pose frame=''>-0.981254 -0.549653 0.215866 0 -0 0</pose>
         <scale>1 1 1</scale>
         <link name='link'>
@@ -755,7 +796,7 @@
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
-      <model name='box_blue_clone_clone_clone'>
+      <model name='box_blue_3'>
         <pose frame=''>-0.967767 -0.187743 0.215866 0 -0 0</pose>
         <scale>1 1 1</scale>
         <link name='link'>
@@ -765,7 +806,7 @@
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
-      <model name='box_blue_clone_clone_clone_0'>
+      <model name='box_blue_4'>
         <pose frame=''>-0.63424 -0.537385 0.215866 0 -0 0</pose>
         <scale>1 1 1</scale>
         <link name='link'>
@@ -775,7 +816,7 @@
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
-      <model name='box_blue_clone_clone_clone_clone'>
+      <model name='box_blue_5'>
         <pose frame=''>-0.609815 0.508477 0.215866 0 -0 0</pose>
         <scale>1 1 1</scale>
         <link name='link'>
@@ -795,7 +836,7 @@
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
-      <model name='box_red_clone'>
+      <model name='box_red_1'>
         <pose frame=''>-1.22815 -0.194135 0.219289 0 -0 0</pose>
         <scale>1 1 1</scale>
         <link name='link'>
@@ -805,7 +846,7 @@
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
-      <model name='box_red_clone_clone'>
+      <model name='box_red_2'>
         <pose frame=''>-0.640768 -0.187247 0.219289 0 -0 0</pose>
         <scale>1 1 1</scale>
         <link name='link'>
@@ -815,7 +856,7 @@
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
-      <model name='box_red_clone_clone_0'>
+      <model name='box_red_3'>
         <pose frame=''>-0.938003 0.148224 0.219289 0 -0 0</pose>
         <scale>1 1 1</scale>
         <link name='link'>
@@ -825,7 +866,7 @@
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
-      <model name='box_red_clone_clone_1'>
+      <model name='box_red_4'>
         <pose frame=''>-0.946755 0.505999 0.219289 0 -0 0</pose>
         <scale>1 1 1</scale>
         <link name='link'>
@@ -835,7 +876,7 @@
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
-      <model name='box_red_clone_clone_2'>
+      <model name='box_red_5'>
         <pose frame=''>-0.620332 0.156611 0.219289 0 -0 0</pose>
         <scale>1 1 1</scale>
         <link name='link'>
@@ -845,7 +886,7 @@
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
-      <model name='example'>
+      <model name='camera'>
         <pose frame=''>-1.5 0 2 3.14159 1.57079 3.14159</pose>
         <scale>1 1 1</scale>
         <link name='sensor'>

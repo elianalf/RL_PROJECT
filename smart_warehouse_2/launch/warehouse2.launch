@@ -26,7 +26,7 @@
    
     <param name="rgbd_description" command="$(find xacro)/xacro '$(find smart_warehouse_2)/urdf/rgbd.xacro'" />
     <node pkg="gazebo_ros" type="spawn_model" name="spawn_model" args="-urdf -param /rgbd_description -model camera -x -1.5 -y 0 -z 2 -R 0.0 -P 1.57 -Y 0.0" />
-   <!-- <node pkg="tf" type="static_transform_publisher" name="camera_transformation" args="-1.5 0 2 0.0 1.57 0.0 world rgbd_link 100" /> -->
+
     
   <!-- urdf xml robot description loaded on the Parameter Server, converting the xacro into a proper urdf file-->
   <include file="$(find abb_irb6640_gazebo)/launch/load_irb6640_185_280.launch" />

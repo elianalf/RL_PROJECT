@@ -47,6 +47,7 @@ void load_param( string & p, string def, string name ) {
   cout << name << ": " << "\t" << p << endl;
 }
 
+//LOAD THRESHOLD AND RATE
 void load_param( int & p, int def, string name ) {
   ros::NodeHandle n_param("~");
   if( !n_param.getParam( name, p))
@@ -54,7 +55,7 @@ void load_param( int & p, int def, string name ) {
   cout << name << ": " << "\t" << p << endl;
 }
 
-//SET_RGB
+//TUNING TRUE OR FALSE
 void load_param( bool & p, bool def, string name ) {
   ros::NodeHandle n_param("~");
   if( !n_param.getParam( name, p))
@@ -73,7 +74,7 @@ box_tracking::box_tracking() {
     load_param( _img_topic, "/depth_camera/depth_camera/image_raw", "img_topic" );
     load_param( _depth_img_topic, "/depth_camera/depth/disparity", "depth_img_topic"); 
     load_param( _cam_info_topic, "/depth_camera/depth_camera/camera_info", "camera_info_topic" );
-    load_param( _rate, 30, "rate" );
+    load_param( _rate, 20, "rate" );
     load_param( _set_RGB, false, "set_RGB");
     
     load_param( _low_r_1, 5, "low_r_1");
@@ -175,23 +176,24 @@ void box_tracking::track_rectangle() {
     ros::Rate r(_rate);
     Mat img;
     Mat depth;
-    cout << "Waiting for server" << endl;
     while( !_img_ready || !_depth_ready || !_cam_info_first) {
         usleep(0.1*1e6);
     }  
-  actionlib::SimpleActionClient<smartwarehouse_opencv::box_posAction> a_c("abb_robot_server", true);
-  //a_c.waitForServer(); //will wait for infinite time
-  cout << "Server is ready" << endl;
-  smartwarehouse_opencv::box_posGoal pos_goal;
-    int low_rgb[3]; int high_rgb[3];  
-    vector<Point> rectangle_center;
-    double cx, cy, fx_inv, fy_inv;
-    double cx_c1, cy_c1, cz_c1;
-    float zd_c1;
-    float zd_c2;
-    Matrix3x3 Rot_matrix_;
+   
+   actionlib::SimpleActionClient<smartwarehouse_opencv::box_posAction> a_c("abb_robot_server", true);
+   cout << "Waiting for server" << endl;
+   a_c.waitForServer(); //will wait for infinite time
+   cout << "Server is ready" << endl;
+   smartwarehouse_opencv::box_posGoal pos_goal;
+   int low_rgb[3]; int high_rgb[3];  
+   vector<Point> rectangle_center;
+   double cx, cy, fx_inv, fy_inv;
+   double cx_c1, cy_c1, cz_c1;
+   float zd_c1;
+   float zd_c2;
+   Matrix3x3 Rot_matrix_;
     
-    while(ros::ok()) {
+   while(ros::ok()) {
       bool box_moved = false;
       img = _src;
       depth = _depth_src;
@@ -219,11 +221,10 @@ void box_tracking::track_rectangle() {
         fx_inv = 1.0 / _cam_cameraMatrix->at<double>(0,0);
         fy_inv = 1.0 / _cam_cameraMatrix->at<double>(1,1);
         
-        for(int i=0; i< rectangle_center.size(); i++){
-           zd_c1 = depth.at<float>(rectangle_center[i].y,rectangle_center[i].x);
-           cx_c1 = (zd_c1) * ( (rectangle_center[i].x - cx) * fx_inv );
-           cy_c1 = (zd_c1) * ( (rectangle_center[i].y - cy) * fy_inv );
-           cz_c1 = zd_c1;
+        zd_c1 = depth.at<float>(rectangle_center[0].y,rectangle_center[0].x);
+        cx_c1 = (zd_c1) * ( (rectangle_center[0].x - cx) * fx_inv );
+        cy_c1 = (zd_c1) * ( (rectangle_center[0].y - cy) * fy_inv );
+        cz_c1 = zd_c1;
          // cout << "Position in camera frame: (" << cx_c1 << ", " << cy_c1 << ", " << cz_c1 << ")" << endl; 
           
           Rot_matrix_.setRPY(3.14, 0, -1.57);
@@ -234,27 +235,21 @@ void box_tracking::track_rectangle() {
           pos_goal.x_box = px;
           pos_goal.y_box = py;
           pos_goal.z_box = pz;
-           cout<<"Send pos in world frame n."<<i<<": "<<px<<" "<<py<<" "<<pz<<endl;
+           cout<<"Sending pos in world frame: "<<px<<" "<<py<<" "<<pz<<endl;
           a_c.sendGoal(pos_goal);
           while(!box_moved){
-            usleep(1);
-            
-            if (a_c.getState() == actionlib::SimpleClientGoalState::SUCCEEDED ) {
-		                cout << "Box successfully moved!" << endl;
-			            box_moved = true;
+             usleep(1);
+             if (a_c.getState() == actionlib::SimpleClientGoalState::SUCCEEDED ) {
+		              cout << "Box successfully moved!" << endl;
 			           r.sleep();
+			           box_moved = true;
 		       }
-		       else if(a_c.getState() == actionlib::SimpleClientGoalState::ABORTED) {cout<<"The goal was ABORTED by the action server due to some failure"<<endl;}
-          }
-          
-          
-          /*Rot_matrix_.setRPY(0, 0, 3.14);
-          double pxr=(Rot_matrix_[0].x() * px)+(Rot_matrix_[0].y() * py)+(Rot_matrix_[0].z()* pz) +0.5;
-          double pyr=(Rot_matrix_[1].x() * px)+(Rot_matrix_[1].y() * py)+(Rot_matrix_[1].z()* pz) -1.5;
-          double pzr=(Rot_matrix_[2].x() * px)+(Rot_matrix_[2].y() * py)+(Rot_matrix_[2].z()* pz) ;//-0.1  
-          cout<<"POS in robot base frame n."<<i<<": "<<pxr<<" "<<pyr<<" "<<pzr<<endl;*/
-          
-         }
+		       else if(a_c.getState() == actionlib::SimpleClientGoalState::ABORTED) {
+		         cout<<"The goal was ABORTED by the action server due to some failure"<<endl;
+		       }
+           }
+           
+         
        }
        else{
          cout<<"FINISHED FIRST (default RED)"<<endl;
@@ -268,10 +263,10 @@ void box_tracking::track_rectangle() {
 
 void box_tracking::run() {
 
-  if( _set_RGB )
-    boost::thread tune_rgb_gain_t( &box_tracking::tune_rgb_gain, this );
-  else 
-    boost::thread track_rectangle_t( &box_tracking::track_rectangle, this );
+  if( _set_RGB ){
+    boost::thread tune_rgb_gain_t( &box_tracking::tune_rgb_gain, this );}
+  else {
+    boost::thread track_rectangle_t( &box_tracking::track_rectangle, this );}
  
   ros::spin();
 }
@@ -281,8 +276,8 @@ void box_tracking::run() {
 
 int main(int argc, char** argv) {
     ros::init( argc, argv, "object_tracker");
-    box_tracking st;
-    st.run();
+    box_tracking bt;
+    bt.run();
 
     return 0;
 

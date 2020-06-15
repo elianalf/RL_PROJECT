@@ -2,9 +2,9 @@
 
 <launch>
 
-  <node pkg="smartwarehouse_opencv" name="img_elaboration" type="img_elaboration" output="screen">
+  <node pkg="smartwarehouse_opencv" name="obj_tracker" type="obj_tracker" output="screen">
 
-    <param name="rate" type="int" value="30" />
+    <param name="rate" type="int" value="20" />
     <param name="img_left_topic" type="string" value="/depth_camera/depth_camera/image_raw" />
     <param name="depth_img_topic" type="string" value="/depth_camera/depth/disparity" />
 	 <param name="camera_left_info_topic" type="string" value="/depth_camera/depth_camera/camera_info" />

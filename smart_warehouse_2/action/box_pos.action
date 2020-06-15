@@ -1,0 +1,14 @@
+#goal 
+float64 x_box
+float64 y_box
+float64 z_box
+---
+#result 
+float64 x_reached
+float64 y_reached
+float64 z_reached
+---
+#feedback
+float64 x_curr
+float64 y_curr
+float64 z_curr

@@ -5,15 +5,15 @@ using namespace cv;
 
 bool get_rectangle( Mat img, int low_rgb[3], int high_rgb[3],  vector< Point> & centro ) {
   
-   bool there_are_contours=true;
+   bool there_are_boxes=true;
+   
     Mat img_th;
     vector<vector<Point> > contours;
     inRange(img, Scalar(low_rgb[2], low_rgb[1], low_rgb[0]), Scalar(high_rgb[2], high_rgb[1], high_rgb[0]), img_th);
     
-  imshow( "inRange", img_th );
-    waitKey(1);
+    //imshow( "inRange", img_th );
+    //waitKey(1);
 
-    //Contours
     findContours( img_th, contours, CV_RETR_CCOMP, CV_CHAIN_APPROX_SIMPLE);
     Mat drawing = Mat::zeros(img_th.size(), CV_8UC3 );
 
@@ -21,10 +21,11 @@ bool get_rectangle( Mat img, int low_rgb[3], int high_rgb[3],  vector< Point> & 
         Scalar color = Scalar( 0, 0, 255 );
         drawContours( drawing, contours, i, color, 2, 8 );
     }
-    imshow( "contours", drawing );
-    waitKey(1);
+    //imshow( "contours", drawing );
+    //waitKey(1);
     
-   vector<RotatedRect> minRect( contours.size() );
+    vector<RotatedRect> minRect( contours.size() );
+    
      for( size_t i = 0; i < contours.size(); i++ )
     {
         minRect[i] = minAreaRect( Mat(contours[i]) );  
@@ -48,18 +49,18 @@ bool get_rectangle( Mat img, int low_rgb[3], int high_rgb[3],  vector< Point> & 
         }      
        }
  
-       imshow( "rectangle", drawing );
-       waitKey(1);
+       //imshow( "rectangle", drawing );
+       //waitKey(1);
        
        img.release();
        img_th.release();
        contours.clear();
-       there_are_contours=true ;
+       there_are_boxes=true ;
    }
    else{
-      there_are_contours= false;
+      there_are_boxes= false;
    }
-   return there_are_contours;
+   return there_are_boxes;
 }
 
 
