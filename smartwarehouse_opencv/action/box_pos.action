@@ -2,6 +2,8 @@
 float64 x_box
 float64 y_box
 float64 z_box
+string box_name
+string color
 ---
 #result 
 float64 x_reached

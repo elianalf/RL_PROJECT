@@ -8,34 +8,57 @@ bool task_completed;
 geometry_msgs::Pose start_pose;
 geometry_msgs::Pose pick_pose;
 geometry_msgs::Pose place_pose;
+smart_warehouse_2::box_posGoal _GOAL;
+
+/*********************************+
+   I VALORI SUCCESSIVI SONO LE POSIZIONI (IN ROBOT FRAME) INIZIALI IN CUI IL ROBOT DEVE INIZIARE A POSIZIONARE I BOX ROSSI E BLUE, POI IN MOVEIT_ABB C'È IL CAMBIO DELLA POSIZIONE A OGNI CHIAMATA DI FUNZIONE. BISOGNA TESTARE QUESTE POSIZIONI (E ANCHE LO SCORRIMENTO +=0.3)
+*********************************/
+double pxo_red =2;// -0.7;
+double pyo_red = 2.0;
+double pzo_red = 0.31;
+double pxo_blue = -1;
+double pyo_blue = 1.8;
+double pzo_blue = 0.25;
 
 PICK_PLACE_TASK::PICK_PLACE_TASK(string name_) :
   a_s(_n, name_, boost::bind(&PICK_PLACE_TASK::executeCB, this, _1), false),
     action_name(name_) {
         a_s.registerPreemptCallback( boost::bind(&PICK_PLACE_TASK::preemptCB, this) );
- topic_pub = _n.advertise<gazebo_msgs::ModelState>("/gazebo/set_model_state",10);
+   //topic_pub = _n.advertise<gazebo_msgs::ModelState>("/gazebo/set_model_state",10);
+   	Pioneer_pub=_n.advertise<std_msgs::String>("/Warehouse/NewBox",20);
  
    Rot_matrix_.setRPY(0, 0, 3.14); //rotation matrix to transform in robot base frame
-   start_pose.orientation.x = 0;
+   /*start_pose.orientation.x = 0;
    start_pose.orientation.y = 0.977;
-   start_pose.orientation.w = 0;
-	start_pose.orientation.w = 0.212;
+   start_pose.orientation.z = 0;
+	start_pose.orientation.w = 0.212;*/
+	start_pose.orientation.x = 0;
+   start_pose.orientation.y = 1;
+   start_pose.orientation.z = 0;
+	start_pose.orientation.w = 0;
 	start_pose.position.x = 1.91;
 	start_pose.position.y = 0;
 	start_pose.position.z = 2.05;
 	
 	pick_pose = start_pose;
-	
+	/*pick_pose.orientation.x = 0.7;
+   pick_pose.orientation.y = 0.7;
+   pick_pose.orientation.z = 0;
+   pick_pose.orientation.w = 0;*/
+   
 	place_pose = start_pose;
+	/*place_pose.orientation.x = 0.7;
+   place_pose.orientation.y = -0.7;
+   place_pose.orientation.z = 0;
+   place_pose.orientation.w = 0;*/
 	
-	double pxo = -1.4;
-   double pyo = -3.8;
-   double pzo = 0.2;
-	place_pose.position.x = (Rot_matrix_[0].x() * pxo)+(Rot_matrix_[0].y() * pyo)+(Rot_matrix_[0].z()* pzo) + 0.5;
-   place_pose.position.y = (Rot_matrix_[1].x() * pxo)+(Rot_matrix_[1].y() * pyo)+(Rot_matrix_[1].z()* pzo) - 1.5;
-   place_pose.position.z = (Rot_matrix_[2].x() * pxo)+(Rot_matrix_[2].y() * pyo)+(Rot_matrix_[2].z()* pzo) + 0.2;
-	 
+	place_pose.position.x = pxo_red;
+   place_pose.position.y = pyo_red;
+   place_pose.position.z = pzo_red;
+	
+  
   a_s.start();
+  
    
 }
 
@@ -43,43 +66,42 @@ PICK_PLACE_TASK::PICK_PLACE_TASK(string name_) :
 
 
 void PICK_PLACE_TASK::moveit_abb(double px, double py, double pz){
-     // ros::AsyncSpinner spinner(1);
-      //spinner.start();
+
       
   static const std::string PLANNING_GROUP = "manipulator";
-  // The :move_group_interface:`MoveGroupInterface` class can be easily
-  // setup using just the name of the planning group you would like to control and plan for.
   moveit::planning_interface::MoveGroupInterface move_group(PLANNING_GROUP);
-  // We will use the :planning_scene_interface:`PlanningSceneInterface`
-  // class to add and remove collision objects in our "virtual world" scene
   moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
-  // Raw pointers are frequently used to refer to the planning group for improved performance.
   const robot_state::JointModelGroup* joint_model_group = move_group.getCurrentState()->getJointModelGroup(PLANNING_GROUP);
-  // The package MoveItVisualTools provides many capabilties for visualizing objects, robots,
-  // and trajectories in RViz as well as debugging tools such as step-by-step introspection of a script
-  //namespace rvt = rviz_visual_tools;
-  //moveit_visual_tools::MoveItVisualTools visual_tools("world");
-  //visual_tools.deleteAllMarkers();
-  // Remote control is an introspection tool that allows users to step through a high level script
-  // via buttons and keyboard shortcuts in RViz
-  //visual_tools.loadRemoteControl();
-  // Getting Basic Information
-  // ^^^^^^^^^^^^^^^^^^^^^^^^^
-  // We can print the name of the reference frame for this robot.
- // ROS_INFO_NAMED("abb_moveit_info", "Planning frame: %s", move_group.getPlanningFrame().c_str());
-  //ROS_INFO_NAMED("abb_moveit_info", "Reference Frame: %s", move_group.getPoseReferenceFrame().c_str());
-  // We can also print the name of the end-effector link for this group.
-  // ROS_INFO_NAMED("abb_moveit_info", "End effector link: %s", move_group.getEndEffectorLink().c_str());
-   
-  // We can get a list of all the groups in the robot:
-   //ROS_INFO_NAMED("abb_moveit_info", "Available Planning Groups:");
-  //copy() copy a full vector or a part of it into a string copy(begin, end, where it has to copy)
   std::copy(move_group.getJointModelGroupNames().begin(), move_group.getJointModelGroupNames().end(),
   std::ostream_iterator<std::string>(std::cout, ", "));
 	
+	std_msgs::String to_p3dx;
+   	to_p3dx.data=_GOAL.box_name;
+	
+	move_group.clearPoseTargets();
+	move_group.setStartStateToCurrentState();
+	
+	if(_GOAL.color == "red"){  
+	   cout<<"it's red"<<endl;
+      pxo_red -= 0.3;
+      place_pose.position.x = pxo_red;
+      place_pose.position.y = pyo_red;
+      //per parsing del Pioneer_manager
+      to_p3dx.data+="**red";
+      }
+   else if (_GOAL.color == "blue"){
+      pxo_blue += 0.3;
+      place_pose.position.x = pxo_blue;
+      place_pose.position.y = pyo_blue; 
+      //per parsing del Pioneer_manager
+      to_p3dx.data+="*blue";
+      }
+	
    moveit::planning_interface::MoveGroupInterface::Plan my_plan;
+   //move_group.setEndEffectorLink ("link_6");
    move_group.setMaxVelocityScalingFactor(1);
-   move_group.setPlanningTime(10);
+   move_group.setPlannerId ("RRTstarkConfigDefault");
+   //move_group.setPlanningTime(7);
    bool success = false;
  
    
@@ -88,43 +110,81 @@ void PICK_PLACE_TASK::moveit_abb(double px, double py, double pz){
    pick_pose.position.z = pz;    
    
    
+   //costruzione del comando di attach da dare in shell
+   string shell_command_attach;
+   shell_command_attach+="rosservice call /link_attacher_node/attach '{model_name_1: 'abb_irb6640_185_280', link_name_1: 'link_6', model_name_2: '";
+   shell_command_attach+=_GOAL.box_name;
+   shell_command_attach+="', link_name_2: 'link'}'";
+   //costruzione del comando di detach da dare in shell
+   string shell_command_detach;
+   shell_command_detach+="rosservice call /link_attacher_node/detach '{model_name_1: 'abb_irb6640_185_280', link_name_1: 'link_6', model_name_2: '";
+   shell_command_detach+=_GOAL.box_name;
+   shell_command_detach+="', link_name_2: 'link'}'";
+   
+
    move_group.setPoseTarget(pick_pose);
    success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-   ROS_INFO_NAMED("abb_moveit_info", "Visualizing target pose %s", success ? "" : "FAILED"); 
+   ROS_INFO_NAMED("abb_moveit_info", "Visualizing target pose 1: %s", success ? "" : "FAILED"); 
    move_group.move();
-	usleep(5000);
-	system("rosrun gazebo_ros_link_attacher attach.py");
-	usleep(50000);
+   usleep(5000);
+   cout<<"1"<<endl;
+	if(success){ //ROS_INFO_STREAM(shell_command_attach);
+		     ROS_INFO_STREAM("attaching...");
+		     system(shell_command_attach.c_str());
+		     }
+	usleep(100000);
 	success = false;
+	
+   move_group.clearPoseTargets();
+	move_group.setStartStateToCurrentState();
+   usleep(500);
    
 	move_group.setPoseTarget(start_pose);
    success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-   ROS_INFO_NAMED("abb_moveit_info", "Visualizing target pose %s", success ? "" : "FAILED");    
+   ROS_INFO_NAMED("abb_moveit_info", "Visualizing target pose 2: %s", success ? "" : "FAILED");    
    move_group.move();
-   usleep(10000);
+   usleep(5000);
+   cout<<"2 In start pose"<<endl;
    success = false;
+   
+   move_group.clearPoseTargets();
+	move_group.setStartStateToCurrentState();
+   usleep(500);
    
    
 	move_group.setPoseTarget(place_pose);
    success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-   ROS_INFO_NAMED("abb_moveit_info", "Visualizing target pose %s", success ? "" : "FAILED");  
+   ROS_INFO_NAMED("abb_moveit_info", "Visualizing target pose 3: %s", success ? "" : "FAILED");  
    move_group.move();
-   usleep(10000);
-   system("rosrun gazebo_ros_link_attacher detach.py");
-	usleep(50000);
+   usleep(5000);
+   cout<<"3"<<endl;
+   if(success){system(shell_command_detach.c_str());
+      ROS_INFO_STREAM("detaching...");
+   		//ROS_INFO_STREAM(shell_command_detach);
+   		}
+	usleep(100000);
 	success = false;
 	
+	move_group.clearPoseTargets();
+	move_group.setStartStateToCurrentState();
+   usleep(500);
+   
 	move_group.setPoseTarget(start_pose);
    success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-   ROS_INFO_NAMED("abb_moveit_info", "Visualizing target pose %s", success ? "" : "FAILED");    
+   ROS_INFO_NAMED("abb_moveit_info", "Visualizing target pose 4: %s", success ? "" : "FAILED");    
    move_group.move();
+   cout<<"4"<<endl;
+   usleep(5000);
+   
+   move_group.clearPoseTargets();
+	move_group.setStartStateToCurrentState();
    usleep(5000);
    
    smart_warehouse_2::box_posResult result;
    result.x_reached=px;
    result.y_reached=py;
    result.z_reached=pz;
- 
+   
    /***************************************************
    METTERE UN VERIFICA SUL SETTAGGIO A SUCCEEDED**********
    ****************************************/
@@ -147,7 +207,7 @@ void PICK_PLACE_TASK::executeCB( const smart_warehouse_2::box_posGoalConstPtr &g
    sposta.reference_frame = "world";
    topic_pub.publish(sposta);
    cout<<"pub"<<endl;*/
-   
+   _GOAL=*goal;
    
    double pxo = goal->x_box;
    double pyo = goal->y_box;
@@ -155,15 +215,13 @@ void PICK_PLACE_TASK::executeCB( const smart_warehouse_2::box_posGoalConstPtr &g
    
    double pxr=(Rot_matrix_[0].x() * pxo)+(Rot_matrix_[0].y() * pyo)+(Rot_matrix_[0].z()* pzo) + 0.5;
    double pyr=(Rot_matrix_[1].x() * pxo)+(Rot_matrix_[1].y() * pyo)+(Rot_matrix_[1].z()* pzo) - 1.5;
-   double pzr=(Rot_matrix_[2].x() * pxo)+(Rot_matrix_[2].y() * pyo)+(Rot_matrix_[2].z()* pzo) + 0.2;  
+   double pzr=(Rot_matrix_[2].x() * pxo)+(Rot_matrix_[2].y() * pyo)+(Rot_matrix_[2].z()* pzo) + 0.18;  
+   //double pzr=(Rot_matrix_[2].x() * pxo)+(Rot_matrix_[2].y() * pyo)+(Rot_matrix_[2].z()* pzo) + 0.2;  
    
- /* double pxr = 1.91;
-  double pyr = 0;
-  double pzr = 0.8;*/
-  
+
    cout<<"New pos in robot base frame: "<<pxr<<" "<<pyr<<" "<<pzr<<endl;
    while (!a_s.isPreemptRequested() && !task_completed) {
-      cout<<"moveit abb"<<endl;
+      
       moveit_abb( pxr , pyr,  pzr);
       
    }
@@ -177,15 +235,22 @@ void PICK_PLACE_TASK::preemptCB(){
 }
 
 void PICK_PLACE_TASK::run(){
-   ros::spin();
    
+ 
+     cout<<"moveit abb"<<endl;
+	
 }
 
 int main(int argc, char** argv){
   ros::init(argc, argv, "abb6640_moveit_node");
+  ros::AsyncSpinner spinner(1);
+  ros::Rate r(1);
+ 
+   if(spinner.canStart()){ ROS_INFO(" start spinner");spinner.start();}
   PICK_PLACE_TASK pp("abb_robot_server");
   pp.run();
+   while(ros::ok()) {r.sleep();}
+   spinner.stop();
    
   return 0;
-
 }

@@ -3,15 +3,50 @@ using namespace std;
 using namespace cv;
 using namespace tf;
 
-bool first_col=true;
+bool first_col;
 
 int low_r = 5;
 int low_g = 0;
 int low_b = 0;
-
 int high_r = 225;
 int high_g = 1;
 int high_b = 1;
+
+ void box_tracking::_get_model_name(double px, double py, double pz, string& box_name){
+   
+   double min_d=1000;
+   int index =-1;
+   for(int j=0; j<init_pose.size(); j++){
+      double dx = px - init_pose[j].position.x;
+      double dy = py - init_pose[j].position.y;
+      double dz = pz - init_pose[j].position.z;
+      double d = sqrt(pow(dx,2)+ pow(dy,2)+ pow(dz,2));
+      if( d < min_d){
+         min_d=d;
+         index=j;
+      }
+   }
+   
+   if(index==-1){
+      cout<<"No model name found"<<endl;
+       box_name = "";}
+   else{
+       box_name=model_names[index];
+       
+         ROS_INFO("l'oggetto più vicino è quello con indice %d",index);
+       cout<<"Box name "<<box_name<<endl;}
+ }
+
+void box_tracking::model_states_cb( gazebo_msgs::ModelStates m_states){
+   size_t m_size = m_states.name.size();
+   model_names.resize(m_size);
+   init_pose.resize(m_size);
+   for(int i=0; i<m_size; i++){
+      model_names[i] = m_states.name[i];
+      init_pose[i] = m_states.pose[i];
+      //cout<<m_states.name[i]<<endl;
+   }
+}
 
 
 void on_low_r_thresh_trackbar(int, void *) {
@@ -67,6 +102,7 @@ void load_param( bool & p, bool def, string name ) {
 
 box_tracking::box_tracking() {
     
+    first_col=true;
     string _img_topic;
     string _depth_img_topic;
     string _cam_info_topic;
@@ -91,6 +127,7 @@ box_tracking::box_tracking() {
     load_param( _high_g_2, 1, "high_g_2");
     load_param( _high_b_2, 225, "high_b_2");
     
+    _gazebo_sub = _nh.subscribe( "/gazebo/model_states", 0, &box_tracking::model_states_cb, this );
     _img_sub = _nh.subscribe( _img_topic.c_str(), 0, &box_tracking::cam_cb, this );
     _depth_img_sub = _nh.subscribe( _depth_img_topic.c_str(),0, &box_tracking::depth_cb, this );
     _cam_info_sub = _nh.subscribe(_cam_info_topic.c_str(), 0, &box_tracking::cam_parameters, this);
@@ -180,11 +217,11 @@ void box_tracking::track_rectangle() {
         usleep(0.1*1e6);
     }  
    
-   actionlib::SimpleActionClient<smartwarehouse_opencv::box_posAction> a_c("abb_robot_server", true);
+   actionlib::SimpleActionClient<smart_warehouse_2::box_posAction> a_c("abb_robot_server", true);
    cout << "Waiting for server" << endl;
    a_c.waitForServer(); //will wait for infinite time
    cout << "Server is ready" << endl;
-   smartwarehouse_opencv::box_posGoal pos_goal;
+   smart_warehouse_2::box_posGoal pos_goal;
    int low_rgb[3]; int high_rgb[3];  
    vector<Point> rectangle_center;
    double cx, cy, fx_inv, fy_inv;
@@ -204,6 +241,7 @@ void box_tracking::track_rectangle() {
           high_rgb[0] = _high_r_1;
           high_rgb[1] = _high_g_1;
           high_rgb[2] = _high_b_1;
+          pos_goal.color="red";
        }
        else{           //BLUE
           low_rgb[0] = _low_r_2;
@@ -212,6 +250,7 @@ void box_tracking::track_rectangle() {
           high_rgb[0] = _high_r_2;
           high_rgb[1] = _high_g_2;
           high_rgb[2] = _high_b_2;
+          pos_goal.color = "blue";
        }
       
       
@@ -230,8 +269,13 @@ void box_tracking::track_rectangle() {
           Rot_matrix_.setRPY(3.14, 0, -1.57);
           double px=(Rot_matrix_[0].x() * cx_c1)+(Rot_matrix_[0].y() * cy_c1)+(Rot_matrix_[0].z()* cz_c1) - 1.5;
           double py=(Rot_matrix_[1].x() * cx_c1)+(Rot_matrix_[1].y() * cy_c1)+(Rot_matrix_[1].z()* cz_c1) -0.02;
-          double pz=(Rot_matrix_[2].x() * cx_c1)+(Rot_matrix_[2].y() * cy_c1)+(Rot_matrix_[2].z()* cz_c1) + 1.88;  
-         
+          double pz=(Rot_matrix_[2].x() * cx_c1)+(Rot_matrix_[2].y() * cy_c1)+(Rot_matrix_[2].z()* cz_c1) + 1.88; 
+           
+          /*********************************************+
+            METTERE LA WAIT FOR MESSAGE 
+          *************************************/
+          
+           _get_model_name(px, py, pz, pos_goal.box_name);
           pos_goal.x_box = px;
           pos_goal.y_box = py;
           pos_goal.z_box = pz;
@@ -249,7 +293,6 @@ void box_tracking::track_rectangle() {
 		       }
            }
            
-         
        }
        else{
          cout<<"FINISHED FIRST (default RED)"<<endl;

@@ -12,6 +12,8 @@
 #include <moveit_msgs/CollisionObject.h>
 #include <moveit_visual_tools/moveit_visual_tools.h>
 #include "tf/LinearMath/Matrix3x3.h"
+
+#include "std_msgs/String.h"
   
 using namespace std;
 using namespace tf;
@@ -30,6 +32,7 @@ class PICK_PLACE_TASK {
    
    ros::NodeHandle _n;
    ros::Publisher topic_pub;
+   ros::Publisher Pioneer_pub;
    actionlib::SimpleActionServer<smart_warehouse_2::box_posAction> a_s; 
    string action_name;
    Matrix3x3 Rot_matrix_;

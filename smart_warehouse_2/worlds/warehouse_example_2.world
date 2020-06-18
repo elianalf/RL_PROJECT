@@ -1,6 +1,8 @@
 <?xml version="1.0" ?>
 <sdf version="1.4">
   <world name="default">
+	<plugin name="ros_link_attacher_plugin" filename="libgazebo_ros_link_attacher.so"/>
+  
 	 <scene>
 	    <shadows>0</shadows>
   </scene>
@@ -30,20 +32,22 @@
     <include>
       <uri>model://ground_plane</uri>
     </include>
-	
+	<!--
 			<include>
 		    	<uri>model://pallet</uri>
 		    <pose>-1.4 0.7 0.0 0 0.0 0</pose>
 		  </include>
-
+	-->
 		
 		<include>
       <uri>model://box_red</uri>
+      			<name>box_red_1</name>
       <pose>-1.4 -0.4 0.2 0 0.0 0</pose>
     </include>
 		
 		<include>
-      <uri>model://box_blue</uri>
+      <uri>model://box_red</uri>
+      			<name>box_red_2</name>
       <pose>-1.3 0.4 0.2 0 0.0 0</pose>
     </include>
 		
