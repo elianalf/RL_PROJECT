@@ -18,7 +18,7 @@
        roslaunch abb_irb6640_gazebo irb6640_gazebo.launch  -->
 
 
-  <rosparam command="load" file="$(find abb_irb6640_description)/config/joint_names_irb6640_185_280.yaml" />
+  <rosparam command="load" file="$(find abb_irb6640_support)/config/joint_names_irb6640_185_280.yaml" />
 
   <!-- By default, we do not start a database (it can be large) -->
   <arg name="db" default="false" />

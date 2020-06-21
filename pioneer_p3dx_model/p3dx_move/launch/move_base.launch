@@ -1,0 +1,32 @@
+<?xml version="1.0" ?>
+
+<launch>
+  <arg name="no_static_map" default="false"/>
+  <arg name="nas" default="" />
+  <arg name="odom_topic" default="$(arg nas)_tf/odom" />
+  
+  <arg name="base_global_planner" default="navfn/NavfnROS"/>
+  <arg name="base_local_planner" default="dwa_local_planner/DWAPlannerROS"/>
+ <group ns="$(arg nas)">
+   <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">    
+             <param name="base_global_planner" value="$(arg base_global_planner)"/>
+             <param name="base_local_planner" value="$(arg base_local_planner)"/>  
+      	     <rosparam file="$(find p3dx_move)/param/$(arg nas)_costmap_common_params.yaml" command="load" ns="local_costmap" /> #
+	     <rosparam file="$(find p3dx_move)/param/$(arg nas)_local_costmap_params.yaml" command="load" /> #
+	     <rosparam file="$(find p3dx_move)/param/$(arg nas)_global_costmap_params.yaml" command="load" />
+	    
+	     <rosparam file="$(find p3dx_move)/param/$(arg nas)_move_base_params.yaml" command="load"/>
+	   
+	   
+	     <param name="local_costmap/width" value="3.0"/>
+	     <param name="local_costmap/height" value="3.0"/> 
+	     <param name="global_costmap/width" value="40.0" if="$(arg no_static_map)"/>
+	     <param name="global_costmap/height" value="40.0" if="$(arg no_static_map)"/>
+		 <!-- global costmap with laser, for odom_navigation_demo -->
+
+
+	    <rosparam file="$(find p3dx_move)/param/$(arg nas)_dwa_local_planner_params.yaml" command="load"/>
+	    <remap from="map" to="/map"/>
+   </node>
+ </group>
+</launch>
