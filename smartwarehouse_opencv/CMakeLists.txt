@@ -18,7 +18,6 @@ find_package(catkin REQUIRED COMPONENTS
   actionlib
   genmsg
   actionlib_msgs
-  actionlib
 )
 
 ## System dependencies are found with CMake's conventions

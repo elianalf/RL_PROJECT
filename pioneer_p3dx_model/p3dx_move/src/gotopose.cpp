@@ -32,7 +32,7 @@ int main(int argc, char** argv){
 	
 	MoveBaseClient _ac("p3dx_1/move_base", true);
 	
-	_base.target_pose.pose.position.x = 2.15;
+	_base.target_pose.pose.position.x = 2.2;
 	_base.target_pose.pose.position.y = -4.0;
 	_base.target_pose.pose.orientation.w = 6.0;
 	_base.target_pose.header.frame_id = "map";

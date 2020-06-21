@@ -53,8 +53,6 @@
   <build_depend>geometry_msgs</build_depend>
   <build_depend>move_base_msg</build_depend>
   <build_depend>nav_msgs</build_depend>
-  <build_depend>octomap_msgs</build_depend>
-  <build_depend>octomap_ros</build_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>rospy</build_depend>
   <build_depend>rviz</build_depend>
@@ -66,8 +64,6 @@
   <build_export_depend>geometry_msgs</build_export_depend>
   <build_export_depend>move_base_msg</build_export_depend>
   <build_export_depend>nav_msgs</build_export_depend>
-  <build_export_depend>octomap_msgs</build_export_depend>
-  <build_export_depend>octomap_ros</build_export_depend>
   <build_export_depend>roscpp</build_export_depend>
   <build_export_depend>rospy</build_export_depend>
   <build_export_depend>rviz</build_export_depend>
@@ -79,8 +75,6 @@
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>move_base_msg</exec_depend>
   <exec_depend>nav_msgs</exec_depend>
-  <exec_depend>octomap_msgs</exec_depend>
-  <exec_depend>octomap_ros</exec_depend>
   <exec_depend>roscpp</exec_depend>
   <exec_depend>rospy</exec_depend>
   <exec_depend>rviz</exec_depend>

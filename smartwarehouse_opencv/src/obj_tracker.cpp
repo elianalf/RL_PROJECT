@@ -32,8 +32,6 @@ int high_b = 1;
        box_name = "";}
    else{
        box_name=model_names[index];
-       
-         ROS_INFO("l'oggetto più vicino è quello con indice %d",index);
        cout<<"Box name "<<box_name<<endl;}
  }
 
@@ -271,15 +269,12 @@ void box_tracking::track_rectangle() {
           double py=(Rot_matrix_[1].x() * cx_c1)+(Rot_matrix_[1].y() * cy_c1)+(Rot_matrix_[1].z()* cz_c1) -0.02;
           double pz=(Rot_matrix_[2].x() * cx_c1)+(Rot_matrix_[2].y() * cy_c1)+(Rot_matrix_[2].z()* cz_c1) + 1.88; 
            
-          /*********************************************+
-            METTERE LA WAIT FOR MESSAGE 
-          *************************************/
           
            _get_model_name(px, py, pz, pos_goal.box_name);
           pos_goal.x_box = px;
           pos_goal.y_box = py;
           pos_goal.z_box = pz;
-           cout<<"Sending pos in world frame: "<<px<<" "<<py<<" "<<pz<<endl;
+           cout<<"Sending position in world frame: "<<px<<" "<<py<<" "<<pz<<endl;
           a_c.sendGoal(pos_goal);
           while(!box_moved){
              usleep(1);
@@ -295,8 +290,8 @@ void box_tracking::track_rectangle() {
            
        }
        else{
-         cout<<"FINISHED FIRST (default RED)"<<endl;
-         first_col=false;
+         
+         first_col=!first_col;
        }
       
         r.sleep();

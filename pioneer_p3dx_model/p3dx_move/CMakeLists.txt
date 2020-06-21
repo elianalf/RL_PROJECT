@@ -12,8 +12,6 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   move_base_msgs
   nav_msgs
-  octomap_msgs
-  octomap_ros
   roscpp
   rospy
   rviz
