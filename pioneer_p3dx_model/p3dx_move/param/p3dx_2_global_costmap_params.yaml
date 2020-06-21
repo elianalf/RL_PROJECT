@@ -1,0 +1,11 @@
+global_costmap:
+   global_frame: map
+   robot_base_frame: p3dx_2_tf/base_link
+   update_frequency: 1.0
+   publish_frequency: 0.5
+   width: 20
+   height: 40
+   static_map: true
+   rolling_window: true
+   transform_tolerance: 0.5
+

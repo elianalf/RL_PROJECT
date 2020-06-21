@@ -1,0 +1,7 @@
+global_frame: map
+rolling_window: true
+track_unknown_space: true
+
+plugins:
+  - {name: p3dx_1_obstacles_laser,           type: "costmap_2d::ObstacleLayer"}
+  - {name: p3dx_1_inflation,                 type: "costmap_2d::InflationLayer"}

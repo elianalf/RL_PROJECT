@@ -40,5 +40,14 @@
 
   <!-- init and start Gazebo ros_control interface -->
   <include file="$(find abb_irb6640_gazebo)/launch/irb6640_185_280_control.launch"/> 
+  
+  <node pkg="tf" type="static_transform_publisher" name="ime_slam_camera_tf" args="0 0 0 0.0 0.0 0.0 /map /world 100" />
+
+  <include file="$(find p3dx_gazebo)/launch/p3dx.launch"> 
+	<arg name="ns" value="p3dx_1" />
+	<arg name="x" value="2.0" />
+	<arg name="y" value="-4.0" />
+
+  </include>
 
 </launch>

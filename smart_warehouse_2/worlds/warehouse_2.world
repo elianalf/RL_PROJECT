@@ -129,6 +129,23 @@
     <model name='box_red'>
       <static>0</static>
       <link name='link'>
+        <collision name="collision">
+        <pose frame=''>0 0 0 0 -0 0</pose>
+        <geometry>
+         <mesh>
+          <uri>model://box_red/meshes/box_red.dae</uri>
+          <scale>0.5 0.5 0.5</scale>
+         </mesh>
+        </geometry>
+       </collision>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>model://box_red/meshes/box_red.dae</uri>
+              <scale>0.5 0.5 0.5</scale>
+            </mesh>
+          </geometry>
+        </visual>
         <inertial>
           <mass>0.0000001</mass>
           <inertia>
@@ -140,40 +157,6 @@
             <izz>0.1</izz>
           </inertia>
         </inertial>
-        <collision name="collision">
-        <pose frame=''>0 0 0 0 -0 0</pose>
-        <geometry>
-         <mesh>
-          <uri>model://box_red/meshes/box_red.dae</uri>
-          <scale>0.5 0.5 0.5</scale>
-         </mesh>
-        </geometry>
-        <surface>
-         <bounce />
-         <friction>
-           <ode>
-             <mu>5.0</mu>
-             <mu2>5.0</mu2>
-           </ode>
-         </friction>
-         <contact>
-           <ode>
-             <kp>10000000.0</kp>
-             <kd>1.0</kd>
-             <min_depth>0.0</min_depth>
-             <max_vel>0.0</max_vel>
-           </ode>
-         </contact>
-        </surface>
-       </collision>
-        <visual name='visual'>
-          <geometry>
-            <mesh>
-              <uri>model://box_red/meshes/box_red.dae</uri>
-              <scale>0.5 0.5 0.5</scale>
-            </mesh>
-          </geometry>
-        </visual>
         <self_collide>0</self_collide>
         <enable_wind>0</enable_wind>
         <kinematic>0</kinematic>
@@ -263,6 +246,7 @@
       </link>
       <pose frame=''>-5 -1 0 0 0 -1.57</pose>
     </model>
+    
     <model name='w1_2'>
       <static>1</static>
       <link name='link'>

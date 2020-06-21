@@ -14,11 +14,11 @@ smart_warehouse_2::box_posGoal _GOAL;
    I VALORI SUCCESSIVI SONO LE POSIZIONI (IN ROBOT FRAME) INIZIALI IN CUI IL ROBOT DEVE INIZIARE A POSIZIONARE I BOX ROSSI E BLUE, POI IN MOVEIT_ABB C'È IL CAMBIO DELLA POSIZIONE A OGNI CHIAMATA DI FUNZIONE. BISOGNA TESTARE QUESTE POSIZIONI (E ANCHE LO SCORRIMENTO +=0.3)
 *********************************/
 double pxo_red =2;// -0.7;
-double pyo_red = 2.0;
+double pyo_red = 1.8;
 double pzo_red = 0.31;
-double pxo_blue = -1;
-double pyo_blue = 1.8;
-double pzo_blue = 0.25;
+double pxo_blue = 1.95;
+double pyo_blue = 2.15;
+double pzo_blue = 0.31;
 
 PICK_PLACE_TASK::PICK_PLACE_TASK(string name_) :
   a_s(_n, name_, boost::bind(&PICK_PLACE_TASK::executeCB, this, _1), false),
@@ -67,7 +67,7 @@ PICK_PLACE_TASK::PICK_PLACE_TASK(string name_) :
 
 void PICK_PLACE_TASK::moveit_abb(double px, double py, double pz){
 
-      
+   smart_warehouse_2::box_posResult result;   
   static const std::string PLANNING_GROUP = "manipulator";
   moveit::planning_interface::MoveGroupInterface move_group(PLANNING_GROUP);
   moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
@@ -90,7 +90,8 @@ void PICK_PLACE_TASK::moveit_abb(double px, double py, double pz){
       to_p3dx.data+="**red";
       }
    else if (_GOAL.color == "blue"){
-      pxo_blue += 0.3;
+   cout<<"	BLUE..."<<endl;
+      pxo_blue -= 0.3;
       place_pose.position.x = pxo_blue;
       place_pose.position.y = pyo_blue; 
       //per parsing del Pioneer_manager
@@ -101,9 +102,10 @@ void PICK_PLACE_TASK::moveit_abb(double px, double py, double pz){
    //move_group.setEndEffectorLink ("link_6");
    move_group.setMaxVelocityScalingFactor(1);
    move_group.setPlannerId ("RRTstarkConfigDefault");
-   //move_group.setPlanningTime(7);
+   move_group.setPlanningTime(5);
    bool success = false;
- 
+	bool success_pick = false;
+	bool success_place=false;
    
    pick_pose.position.x = px;
    pick_pose.position.y = py;
@@ -125,14 +127,21 @@ void PICK_PLACE_TASK::moveit_abb(double px, double py, double pz){
    move_group.setPoseTarget(pick_pose);
    success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
    ROS_INFO_NAMED("abb_moveit_info", "Visualizing target pose 1: %s", success ? "" : "FAILED"); 
-   move_group.move();
-   usleep(5000);
-   cout<<"1"<<endl;
-	if(success){ //ROS_INFO_STREAM(shell_command_attach);
+   success_pick = (move_group.move() == moveit::planning_interface::MoveItErrorCode::SUCCESS);
+   //move_group.move();
+   usleep(500);
+	if(success_pick){ //ROS_INFO_STREAM(shell_command_attach);
 		     ROS_INFO_STREAM("attaching...");
 		     system(shell_command_attach.c_str());
-		     }
-	usleep(100000);
+	}
+	else{
+		result.x_reached=-100.0;
+		result.y_reached=-100.0;
+		result.z_reached=-100.0;
+		a_s.setAborted (result,"Pick box failed!" );
+		task_completed=true;
+	}
+	usleep(50000);
 	success = false;
 	
    move_group.clearPoseTargets();
@@ -143,8 +152,8 @@ void PICK_PLACE_TASK::moveit_abb(double px, double py, double pz){
    success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
    ROS_INFO_NAMED("abb_moveit_info", "Visualizing target pose 2: %s", success ? "" : "FAILED");    
    move_group.move();
-   usleep(5000);
-   cout<<"2 In start pose"<<endl;
+   usleep(500);
+   
    success = false;
    
    move_group.clearPoseTargets();
@@ -155,14 +164,24 @@ void PICK_PLACE_TASK::moveit_abb(double px, double py, double pz){
 	move_group.setPoseTarget(place_pose);
    success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
    ROS_INFO_NAMED("abb_moveit_info", "Visualizing target pose 3: %s", success ? "" : "FAILED");  
-   move_group.move();
-   usleep(5000);
-   cout<<"3"<<endl;
-   if(success){system(shell_command_detach.c_str());
-      ROS_INFO_STREAM("detaching...");
+   //move_group.move();
+   success_place = (move_group.move() == moveit::planning_interface::MoveItErrorCode::SUCCESS);
+   usleep(500);
+   system(shell_command_detach.c_str());
+   if(success_place){
+   		
+      ROS_INFO_STREAM("detaching... and publishing");
    		//ROS_INFO_STREAM(shell_command_detach);
-   		}
-	usleep(100000);
+   		Pioneer_pub.publish(to_p3dx);
+   }
+   else{
+		result.x_reached=1000.0;
+		result.y_reached=1000.0;
+		result.z_reached=1000.0;
+		a_s.setAborted (result,"Place box failed!" );
+		task_completed=true;
+	}
+	usleep(50000);
 	success = false;
 	
 	move_group.clearPoseTargets();
@@ -173,23 +192,19 @@ void PICK_PLACE_TASK::moveit_abb(double px, double py, double pz){
    success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
    ROS_INFO_NAMED("abb_moveit_info", "Visualizing target pose 4: %s", success ? "" : "FAILED");    
    move_group.move();
-   cout<<"4"<<endl;
-   usleep(5000);
+   usleep(500);
    
    move_group.clearPoseTargets();
 	move_group.setStartStateToCurrentState();
-   usleep(5000);
+   usleep(500);
    
-   smart_warehouse_2::box_posResult result;
    result.x_reached=px;
    result.y_reached=py;
    result.z_reached=pz;
    
-   /***************************************************
-   METTERE UN VERIFICA SUL SETTAGGIO A SUCCEEDED**********
-   ****************************************/
-   a_s.setSucceeded(result);
-   cout << "SUCCEEDED" << endl;
+   	a_s.setSucceeded(result);
+   	cout << "SUCCEEDED" << endl;
+   	
    task_completed=true;
 }
 
