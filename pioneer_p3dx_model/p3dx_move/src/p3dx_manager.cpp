@@ -27,8 +27,12 @@ geometry_msgs::Pose goal_p1;
 geometry_msgs::Pose goal_p2;
 double redstation_y ;
 double bluestation_y ;
+double redstation_x ;
+double bluestation_x ;
 int red_index;
 int blue_index;
+int counter_red;
+int counter_blue;
 
 class Pioneer_manager{
 	public:
@@ -62,6 +66,7 @@ Pioneer_manager::Pioneer_manager(){
 	p3dx_1_pub =_nh.advertise<geometry_msgs::Pose>("/Pion/p3dx_1/destination",10);
 	
 	p3dx_2_sub = _nh.subscribe("/Pion/p3dx_2/PosReached", 10,&Pioneer_manager::p3dx_2_list, this);
+
 	p3dx_2_pub =_nh.advertise<geometry_msgs::Pose>("/Pion/p3dx_2/destination",10);
 	
 	new_box = _nh.subscribe("/Warehouse/NewBox", 10,&Pioneer_manager::incomingBox,this);
@@ -73,6 +78,10 @@ Pioneer_manager::Pioneer_manager(){
 	sposta1.pose.orientation.w =1;
 	redstation_y = 8.232;
 	bluestation_y = -10.832;
+	redstation_x = -1.29;
+	bluestation_x = -1.15;
+	counter_red=0;
+	counter_blue=0;
 	p3dx_1_ready=true;
 	p3dx_2_ready=false;
 	
@@ -162,7 +171,6 @@ void Pioneer_manager::managing(){
 				if(p3dx_1_ready){ index++; 
 					 ROS_INFO(" blue to p3dx_1.");
 					 sposta1.model_name = blue_names[blue_index];
-					 blue_index++;
 					 sposta1.pose.position.x = 2;   
 					 sposta1.pose.position.y =-4;
 					 sposta1.pose.position.z =0.310;
@@ -173,7 +181,8 @@ void Pioneer_manager::managing(){
 					 sposta1.reference_frame="world";
 					 gazebo_pub.publish(sposta1);
 					 usleep(1000000);
-					 virtual_joint(box_name,1,1);
+					 virtual_joint(blue_names[blue_index],1,1);
+					 blue_index++;
 					 usleep(100000);
 					// sleep(2);	 
 					p3dx_1_pub.publish(blue_station);
@@ -185,11 +194,22 @@ void Pioneer_manager::managing(){
 					 sleep(2);
 					 ROS_INFO(" blue to p3dx_2."); 
 					 sposta2.model_name = blue_names[blue_index];
-					 blue_index++;		 
-					 p3dx_2_pub.publish(blue_station);
-					  sleep(2);
-					 goal_p2=blue_station;
-					 sposta2.model_name = box_name;
+					 sposta2.pose.position.x = 2;   
+					 sposta2.pose.position.y =-3;
+					 sposta2.pose.position.z =0.310;
+					 sposta2.pose.orientation.x = 0;
+					 sposta2.pose.orientation.y =0;
+					 sposta2.pose.orientation.z =0;
+					 sposta2.pose.orientation.w =1;
+					 sposta2.reference_frame="world";
+					 gazebo_pub.publish(sposta2);
+					 usleep(1000000);
+					 virtual_joint(blue_names[blue_index],2,1);
+					 usleep(100000);
+					  blue_index++;
+					// sleep(2);	 
+					p3dx_1_pub.publish(blue_station);
+					 sleep(2);
 					p3dx_2_ready=false;
 					}
 			}
@@ -198,7 +218,6 @@ void Pioneer_manager::managing(){
 					
 					 ROS_INFO(" red to p3dx_1.");
 					 sposta1.model_name = red_names[red_index];
-					 red_index++;
 					 sposta1.pose.position.x = 2;   
 					 sposta1.pose.position.y =-4;
 					 sposta1.pose.position.z =0.330;
@@ -210,8 +229,9 @@ void Pioneer_manager::managing(){
 					 
 					 gazebo_pub.publish(sposta1);
 					 usleep(1000000);
-					 virtual_joint(box_name,1,1);	 	
+					 virtual_joint(red_names[red_index],1,1);	 	
 					 usleep(100000);
+					 red_index++;
 					  //sleep(2);	 
 					 p3dx_1_pub.publish(red_station);
 					 sleep(2);
@@ -221,8 +241,22 @@ void Pioneer_manager::managing(){
 					else if(p3dx_2_ready){ index++;
 					 ROS_INFO(" red to p3dx_2.");
 					 sposta2.model_name = red_names[red_index];
+					 sposta2.pose.position.x = 2;   
+					 sposta2.pose.position.y =-3;
+					 sposta2.pose.position.z =0.330;
+					 sposta2.pose.orientation.x = 0;
+					 sposta2.pose.orientation.y =0;
+					 sposta2.pose.orientation.z =0;
+					 sposta2.pose.orientation.w =1;
+					 sposta2.reference_frame="world";
+					 
+					 gazebo_pub.publish(sposta2);
+					 usleep(1000000);
+					 virtual_joint(red_names[red_index],2,1);	 	
+					 usleep(100000);
 					 red_index++;
-					  sleep(2); 		 
+					  //sleep(2);	 
+					 sleep(2); 		 
 					 p3dx_2_pub.publish(red_station);
 					 goal_p2=red_station;
 					 sleep(2);	
@@ -249,8 +283,10 @@ void Pioneer_manager::p3dx_1_list(std_msgs::Int8 result){
  if(result.data==2){p3dx_1_ready=true; ROS_INFO("p3dx_1 is back.");}
  else if(result.data==1){
 virtual_joint(sposta1.model_name,1,2);
- if(goal_p1.position.y=red_station.position.y){
- 	sposta1.pose.position.x = -1.2902;   
+ if(goal_p1.position.y==red_station.position.y){
+ 	counter_red++;
+ 	if(counter_red==7){redstation_y=8.232; redstation_x+=0.3;}
+ 	sposta1.pose.position.x = redstation_x;   
 	redstation_y+=0.3;
 	sposta1.pose.position.z =0.310;
 	sposta1.pose.position.y = redstation_y;
@@ -258,7 +294,9 @@ virtual_joint(sposta1.model_name,1,2);
 	gazebo_pub.publish(sposta1);
  	}
  else{
- 	sposta1.pose.position.x = -1.1502;   
+ 	counter_blue++;
+ 	if(counter_blue==7){bluestation_y=-10.832; bluestation_x+=0.3;}
+ 	sposta1.pose.position.x = bluestation_x;   
 	bluestation_y+=0.3;
 	sposta1.pose.position.z =0.310;
 	sposta1.pose.position.y = bluestation_y;
@@ -277,33 +315,30 @@ virtual_joint(sposta1.model_name,1,2);
 void Pioneer_manager::p3dx_2_list(std_msgs::Int8 result){
   if(result.data==2) {p3dx_2_ready=true;  ROS_INFO("p3dx_2 is back.");}
  else if(result.data==1){
- //virtual_joint(sposta2.model_name,2,2);
- if(goal_p2.position.y=red_station.position.y){
- 	sposta2.pose.position.x = -1.2902;   
-	sposta2.pose.position.y =8.232;
-	sposta2.pose.position.z =0.2910;
-	sposta2.pose.orientation.x = 0;
-	sposta2.pose.orientation.y =0;
-	sposta2.pose.orientation.z =0;
-	sposta2.pose.orientation.w =1;
+ virtual_joint(sposta2.model_name,2,2);
+ if(goal_p1.position.y==red_station.position.y){
+        counter_red++;
+ 	if(counter_red==7){redstation_y=8.232; redstation_x+=0.3;}
+ 	sposta1.pose.position.x = redstation_x;
+	redstation_y+=0.3;
+	sposta2.pose.position.z =0.310;
+	sposta2.pose.position.y = redstation_y;
 	sposta2.reference_frame="world";
-	//gazebo_pub.publish(sposta2);
+	gazebo_pub.publish(sposta1);
  	}
  else{
- 	sposta2.pose.position.x = -1.2902;   
-	sposta2.pose.position.y =-8.232;
-	sposta2.pose.position.z =0.2910;
-	sposta2.pose.orientation.x = 0;
-	sposta2.pose.orientation.y =0;
-	sposta2.pose.orientation.z =0;
-	sposta2.pose.orientation.w =1;
+ 	counter_blue++;
+ 	if(counter_blue==7){bluestation_y=-10.832; bluestation_x+=0.3;}
+ 	sposta1.pose.position.x = bluestation_x;    
+	bluestation_y+=0.3;
+	sposta2.pose.position.z =0.310;
+	sposta2.pose.position.y = bluestation_y;
 	sposta2.reference_frame="world";
- 	//gazebo_pub.publish(sposta2);
+ 	gazebo_pub.publish(sposta2);
  }
  
  
- 
-  ROS_INFO("p3dx_1 is coming back.");}
+  ROS_INFO("p3dx_2 is coming back.");}
  else{ //retry
  		p3dx_2_pub.publish(goal_p2);
  
