@@ -10,10 +10,8 @@ geometry_msgs::Pose pick_pose;
 geometry_msgs::Pose place_pose;
 smart_warehouse_2::box_posGoal _GOAL;
 
-/*********************************+
-   I VALORI SUCCESSIVI SONO LE POSIZIONI (IN ROBOT FRAME) INIZIALI IN CUI IL ROBOT DEVE INIZIARE A POSIZIONARE I BOX ROSSI E BLUE, POI IN MOVEIT_ABB C'È IL CAMBIO DELLA POSIZIONE A OGNI CHIAMATA DI FUNZIONE. BISOGNA TESTARE QUESTE POSIZIONI (E ANCHE LO SCORRIMENTO +=0.3)
-*********************************/
-double pxo_red =2;// -0.7;
+
+double pxo_red =1.95;
 double pyo_red = 1.8;
 double pzo_ = 0.31;
 double pxo_blue = 1.95;
@@ -24,33 +22,22 @@ PICK_PLACE_TASK::PICK_PLACE_TASK(string name_) :
   a_s(_n, name_, boost::bind(&PICK_PLACE_TASK::executeCB, this, _1), false),
     action_name(name_) {
         a_s.registerPreemptCallback( boost::bind(&PICK_PLACE_TASK::preemptCB, this) );
-   //topic_pub = _n.advertise<gazebo_msgs::ModelState>("/gazebo/set_model_state",10);
+        
    	Pioneer_pub=_n.advertise<std_msgs::String>("/Warehouse/NewBox",20);
  
    Rot_matrix_.setRPY(0, 0, 3.14); //rotation matrix to transform in robot base frame
-   /*start_pose.orientation.x = 0;
-   start_pose.orientation.y = 0.977;
-   start_pose.orientation.z = 0;
-	start_pose.orientation.w = 0.212;*/
+
 	start_pose.orientation.x = 0;
    start_pose.orientation.y = 1;
    start_pose.orientation.z = 0;
 	start_pose.orientation.w = 0;
 	start_pose.position.x = 1.91;
 	start_pose.position.y = 0;
-	start_pose.position.z = 2;
+	start_pose.position.z = 1.9;
 	
 	pick_pose = start_pose;
-	/*pick_pose.orientation.x = 0.7;
-   pick_pose.orientation.y = 0.7;
-   pick_pose.orientation.z = 0;
-   pick_pose.orientation.w = 0;*/
    
 	place_pose = start_pose;
-	/*place_pose.orientation.x = 0.7;
-   place_pose.orientation.y = -0.7;
-   place_pose.orientation.z = 0;
-   place_pose.orientation.w = 0;*/
 	
 	place_pose.position.x = pxo_red;
    place_pose.position.y = pyo_red;
@@ -84,23 +71,26 @@ void PICK_PLACE_TASK::moveit_abb(double px, double py, double pz){
 	place_pose.position.z = 1;
 	if(_GOAL.color == "red"){  
 	   cout<<"it's red"<<endl;
-      pxo_red -= 0.3;
+	   pxo_red -= 0.3;
+	   if(pxo_red < -0.7)
+	      pxo_red = 1.7;
       place_pose.position.x = pxo_red;
       place_pose.position.y = pyo_red;
-      //per parsing del Pioneer_manager
+      //for parsing of Pioneer_manager
       to_p3dx.data+="**red";
       }
    else if (_GOAL.color == "blue"){
-   cout<<"	BLUE..."<<endl;
-      pxo_blue -= 0.3;
+     cout<<"it's blue"<<endl;
+     pxo_blue -= 0.3;
+     if(pxo_blue < -0.7)
+         pxo_blue = 1.7;
       place_pose.position.x = pxo_blue;
       place_pose.position.y = pyo_blue; 
-      //per parsing del Pioneer_manager
+      //for parsing of Pioneer_manager
       to_p3dx.data+="*blue";
-      }
-	
+   }
+	place_pose.position.x = -0.85;
    moveit::planning_interface::MoveGroupInterface::Plan my_plan;
-   //move_group.setEndEffectorLink ("link_6");
    move_group.setMaxVelocityScalingFactor(1);
    move_group.setPlannerId ("RRTstarkConfigDefault");
    move_group.setPlanningTime(4);
@@ -113,34 +103,35 @@ void PICK_PLACE_TASK::moveit_abb(double px, double py, double pz){
    pick_pose.position.z = 1.1;    
    
    
-   //costruzione del comando di attach da dare in shell
+   //attach command for the shell 
    string shell_command_attach;
    shell_command_attach+="rosservice call /link_attacher_node/attach '{model_name_1: 'abb_irb6640_185_280', link_name_1: 'link_6', model_name_2: '";
    shell_command_attach+=_GOAL.box_name;
    shell_command_attach+="', link_name_2: 'link'}'";
-   //costruzione del comando di detach da dare in shell
+   //detach command for the shell 
    string shell_command_detach;
    shell_command_detach+="rosservice call /link_attacher_node/detach '{model_name_1: 'abb_irb6640_185_280', link_name_1: 'link_6', model_name_2: '";
    shell_command_detach+=_GOAL.box_name;
    shell_command_detach+="', link_name_2: 'link'}'";
    
+   //PICK BOX
    move_group.setPoseTarget(pick_pose);
    success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-   ROS_INFO_NAMED("abb_moveit_info", "Visualizing target pose 1: %s", success ? "REACHABLE POSITION" : "FAILED"); 
+   ROS_INFO_NAMED("abb_moveit_info", "High pick pose: %s", success ? "REACHABLE POSITION" : "FAILED"); 
    success_pick = (move_group.move() == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-   //move_group.move();
-   usleep(500);
+   usleep(50);
+   
    move_group.clearPoseTargets();
 	move_group.setStartStateToCurrentState();
    pick_pose.position.z =pz;
    
+   
    move_group.setPoseTarget(pick_pose);
    success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-   ROS_INFO_NAMED("abb_moveit_info", "Visualizing target pose 1: %s", success ? "REACHABLE POSITION" : "FAILED"); 
+   ROS_INFO_NAMED("abb_moveit_info", "Pick pose: %s", success ? "REACHABLE POSITION" : "FAILED"); 
    success_pick = (move_group.move() == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-   //move_group.move();
    usleep(500);
-	if(success_pick){ //ROS_INFO_STREAM(shell_command_attach);
+	if(success_pick){ 
 	     ROS_INFO_STREAM("attaching...");
 	     system(shell_command_attach.c_str());
 	}
@@ -156,50 +147,55 @@ void PICK_PLACE_TASK::moveit_abb(double px, double py, double pz){
 	
    move_group.clearPoseTargets();
 	move_group.setStartStateToCurrentState();
-   usleep(500);
+   usleep(50);
+   
    pick_pose.position.z = 1.1;
    move_group.setPoseTarget(pick_pose);
    success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-   ROS_INFO_NAMED("abb_moveit_info", "Visualizing target pose 1: %s", success ? "REACHABLE POSITION" : "FAILED"); 
+   //ROS_INFO_NAMED("abb_moveit_info", "Pick pose: %s", success ? "REACHABLE POSITION" : "FAILED"); 
    success_pick = (move_group.move() == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-   //move_group.move();
    usleep(500);
-   move_group.clearPoseTargets();
-	move_group.setStartStateToCurrentState();
-	/*move_group.setPoseTarget(start_pose);
-   success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-   ROS_INFO_NAMED("abb_moveit_info", "Visualizing target pose 2: %s", success ? "REACHABLE POSITION" : "FAILED");    
-   move_group.move();
-   usleep(500);
-   
-   success = false;
    
    move_group.clearPoseTargets();
 	move_group.setStartStateToCurrentState();
-   usleep(500);*/
+	
    
+   //PLACE BOX
    move_group.setPoseTarget(place_pose);
    success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-   ROS_INFO_NAMED("abb_moveit_info", "Visualizing target pose 3: %s", success ? "REACHABLE POSITION" : "FAILED");  
-   //move_group.move();
+   ROS_INFO_NAMED("abb_moveit_info", "High place pose: %s", success ? "REACHABLE POSITION" : "FAILED");  
    success_place = (move_group.move() == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-   usleep(500);
+   usleep(50);
+   if(!success_place){
+      move_group.clearPoseTargets();
+	   move_group.setStartStateToCurrentState();
+	   usleep(500000);
+      move_group.setPoseTarget(start_pose);
+      success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
+      ROS_INFO_NAMED("abb_moveit_info", "Start pose: %s", success ? "REACHABLE POSITION" : "FAILED");    
+      move_group.move();
+      move_group.clearPoseTargets();
+	   move_group.setStartStateToCurrentState();
+	   usleep(500000);
+	   move_group.setPoseTarget(place_pose);
+      success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
+      ROS_INFO_NAMED("abb_moveit_info", "High place pose: %s", success ? "REACHABLE POSITION" : "FAILED");  
+      success_place = (move_group.move() == moveit::planning_interface::MoveItErrorCode::SUCCESS);
+	}
    move_group.clearPoseTargets();
 	move_group.setStartStateToCurrentState();
    place_pose.position.z = pzo_;
+  
    
 	move_group.setPoseTarget(place_pose);
    success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-   ROS_INFO_NAMED("abb_moveit_info", "Visualizing target pose 3: %s", success ? "REACHABLE POSITION" : "FAILED");  
-   //move_group.move();
+   //ROS_INFO_NAMED("abb_moveit_info", "Place pose: %s", success ? "REACHABLE POSITION" : "FAILED");  
    success_place = (move_group.move() == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-   usleep(500);
+   usleep(50);
    system(shell_command_detach.c_str());
    if(success_place){
-   		
       ROS_INFO_STREAM("detaching... and publishing");
-   		//ROS_INFO_STREAM(shell_command_detach);
-   		Pioneer_pub.publish(to_p3dx);
+   	Pioneer_pub.publish(to_p3dx);
    }
    else{
 		result.x_reached=1000.0;
@@ -213,42 +209,32 @@ void PICK_PLACE_TASK::moveit_abb(double px, double py, double pz){
 	
 	move_group.clearPoseTargets();
 	move_group.setStartStateToCurrentState();
-   usleep(500);
+   usleep(50);
+   
    
 	move_group.setPoseTarget(start_pose);
    success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-   ROS_INFO_NAMED("abb_moveit_info", "Visualizing target pose 4: %s", success ? "REACHABLE POSITION" : "FAILED");    
+   ROS_INFO_NAMED("abb_moveit_info", "Start pose: %s", success ? "REACHABLE POSITION" : "FAILED");    
    move_group.move();
-   usleep(500);
+   usleep(50);
    
    move_group.clearPoseTargets();
-	move_group.setStartStateToCurrentState();
-   usleep(500);
+   usleep(50);
    
    result.x_reached=px;
    result.y_reached=py;
    result.z_reached=pz;
    
-	a_s.setSucceeded(result);
-	cout << "SUCCEEDED" << endl;
+	if(success_place&&success_pick)
+	   { a_s.setSucceeded(result);
+	   cout << "SUCCEEDED" << endl;}
    	
    task_completed=true;
 }
 
 
 void PICK_PLACE_TASK::executeCB( const smart_warehouse_2::box_posGoalConstPtr &goal ){
- /* gazebo_msgs::ModelState sposta;
-   sposta.model_name = "box_red_clone";
-   sposta.pose.position.x = 0;
-   sposta.pose.position.y =0;
-   sposta.pose.position.z =0; 
-    sposta.pose.orientation.x = 0;
-   sposta.pose.orientation.y =0;
-   sposta.pose.orientation.z =0;
-   sposta.pose.orientation.w =0;
-   sposta.reference_frame = "world";
-   topic_pub.publish(sposta);
-   cout<<"pub"<<endl;*/
+
    _GOAL=*goal;
    
    double pxo = goal->x_box;
@@ -257,30 +243,22 @@ void PICK_PLACE_TASK::executeCB( const smart_warehouse_2::box_posGoalConstPtr &g
    
    double pxr=(Rot_matrix_[0].x() * pxo)+(Rot_matrix_[0].y() * pyo)+(Rot_matrix_[0].z()* pzo) + 0.5;
    double pyr=(Rot_matrix_[1].x() * pxo)+(Rot_matrix_[1].y() * pyo)+(Rot_matrix_[1].z()* pzo) - 1.5;
-   double pzr=(Rot_matrix_[2].x() * pxo)+(Rot_matrix_[2].y() * pyo)+(Rot_matrix_[2].z()* pzo) + 0.18;  
-   //double pzr=(Rot_matrix_[2].x() * pxo)+(Rot_matrix_[2].y() * pyo)+(Rot_matrix_[2].z()* pzo) + 0.2;  
+   double pzr=(Rot_matrix_[2].x() * pxo)+(Rot_matrix_[2].y() * pyo)+(Rot_matrix_[2].z()* pzo) + 0.18;   
    
-
    cout<<"New pos in robot base frame: "<<pxr<<" "<<pyr<<" "<<pzr<<endl;
    while (!a_s.isPreemptRequested() && !task_completed) {
-      
       moveit_abb( pxr , pyr,  pzr);
-      
    }
    task_completed=false;
 }
 
 void PICK_PLACE_TASK::preemptCB(){
    cout<<"Got preempted"<<endl;
-   //as.setPreempted(result,"I got Preempted");}
 
 }
 
 void PICK_PLACE_TASK::run(){
-   
- 
-     cout<<"moveit abb"<<endl;
-	
+   cout<<"moveit abb"<<endl;
 }
 
 int main(int argc, char** argv){

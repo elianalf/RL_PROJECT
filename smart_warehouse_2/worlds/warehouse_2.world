@@ -22,8 +22,8 @@
           <contact_surface_layer>0</contact_surface_layer>
         </constraints>
       </ode>
-      <real_time_update_rate>1000</real_time_update_rate>
-      <max_step_size>0.001</max_step_size>
+      <real_time_update_rate>0</real_time_update_rate>
+      <max_step_size>0.01</max_step_size>
       <real_time_factor>1</real_time_factor>
     </physics>
     <light name='sun' type='directional'>
@@ -129,7 +129,7 @@
     <model name='box_red'>
       <static>0</static>
       <link name='link'>
-        <collision name="collision">
+       <collision name="collision">
         <pose frame=''>0 0 0 0 -0 0</pose>
         <geometry>
          <mesh>
@@ -171,7 +171,7 @@
         <pose frame=''>0 0 0 0 -0 0</pose>
         <geometry>
          <mesh>
-          <uri>model://box_blue/meshes/box_blue.dae</uri>
+          <uri>model://box_red/meshes/box_red.dae</uri>
           <scale>0.5 0.5 0.5</scale>
          </mesh>
         </geometry>
@@ -683,7 +683,7 @@
         <pose frame=''>0 0 0 0 -0 0</pose>
         <geometry>
          <mesh>
-          <uri>model://box_blue/meshes/box_blue.dae</uri>
+          <uri>model://box_red/meshes/box_red.dae</uri>
           <scale>0.5 0.5 0.5</scale>
          </mesh>
         </geometry>
@@ -794,7 +794,7 @@
         <pose frame=''>0 0 0 0 -0 0</pose>
         <geometry>
          <mesh>
-          <uri>model://box_blue/meshes/box_blue.dae</uri>
+          <uri>model://box_red/meshes/box_red.dae</uri>
           <scale>0.5 0.5 0.5</scale>
          </mesh>
         </geometry>
@@ -831,7 +831,7 @@
         <pose frame=''>0 0 0 0 -0 0</pose>
         <geometry>
          <mesh>
-          <uri>model://box_blue/meshes/box_blue.dae</uri>
+          <uri>model://box_red/meshes/box_red.dae</uri>
           <scale>0.5 0.5 0.5</scale>
          </mesh>
         </geometry>
@@ -868,7 +868,7 @@
         <pose frame=''>0 0 0 0 -0 0</pose>
         <geometry>
          <mesh>
-          <uri>model://box_blue/meshes/box_blue.dae</uri>
+          <uri>model://box_red/meshes/box_red.dae</uri>
           <scale>0.5 0.5 0.5</scale>
          </mesh>
         </geometry>
@@ -905,7 +905,7 @@
         <pose frame=''>0 0 0 0 -0 0</pose>
         <geometry>
          <mesh>
-          <uri>model://box_blue/meshes/box_blue.dae</uri>
+          <uri>model://box_red/meshes/box_red.dae</uri>
           <scale>0.5 0.5 0.5</scale>
          </mesh>
         </geometry>
