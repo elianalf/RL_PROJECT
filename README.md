@@ -1,6 +1,6 @@
 # Pioneer P3-DX Model
 
-A ROS/Gazebo Pioneer 3DX model created by Rafael Berkvens (rafael.berkvens@uantwerpen.be) and modified by Mario Serna Hernández. This is a model adapted to the Pioneer P3-DX robot of the Movis Research & Innovation Group.
+A ROS/Gazebo Warehouse_2 project for Robotics Lab made by Eliana La Frazia and Andrea Cavaliere (andreacavaliere49@gmail.com and lafrazia.eliana@gmail.com). The pioneer folder is and adaption of the Pioneer model made by Rafael Berkvens and Mario Serna Hernández. 
 
 
 # To install:
