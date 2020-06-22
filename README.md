@@ -1,6 +1,7 @@
-# Pioneer P3-DX Model
+# Smart Warehouse 2 - Robotics Lab 2020 - Master's Degree Automation Engineering University of Naples Federico II  
 
 A ROS/Gazebo Warehouse_2 project for Robotics Lab made by Eliana La Frazia and Andrea Cavaliere (andreacavaliere49@gmail.com and lafrazia.eliana@gmail.com). The pioneer folder is and adaption of the Pioneer model made by Rafael Berkvens and Mario Serna Hernández. 
+More details in the report.
 
 
 # To install:
