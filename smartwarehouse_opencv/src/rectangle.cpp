@@ -32,7 +32,7 @@ bool get_rectangle( Mat img, int low_rgb[3], int high_rgb[3],  vector< Point> & 
     }
     
     size_t size_c=contours.size();
-    cout<<"Contours size "<<size_c<<endl;
+    //cout<<"Contours size "<<size_c<<endl;
     if(size_c > 0){
       centro.resize(size_c);
       for( size_t i = 0; i< contours.size(); i++ ){  
