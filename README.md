@@ -49,7 +49,7 @@ ros_controllers
 
 # Execution Example:
 ```
-If the user needs to tune the rgb exact values the camera has to detect, he/she can follow this step.
+If the user needs to tune the rgb exact values the camera has to detect, he/she can follow this step.  The default colours are red and blue.
 Every step has to be done in all separate shells:
 
 1)Launching Gazebo and spawning robots
@@ -58,7 +58,7 @@ $ roslaunch smart_warehouse_2 warehouse2.launch
 2)Go to /smartwarehouse_opencv/launch/identify_boxes.launch and change the value of the parameter "set_RGB" to TRUE and launch it.
 $ roslaunch smartwarehouse_opencv identify_boxes.launch
 
-3)Define the desired range of rgb values and change them into the identify_boxes.launch. Then change the value of the parameter "set_RGB" to FALSE and launch it again as step 2). Finally execute from step 4) onwards of the following steps. 
+3)Define the desired ranges of rgb values and change them into the identify_boxes.launch. Then change the value of the parameter "set_RGB" to FALSE and launch it again as step 2). Finally execute from step 4) onwards of the following steps. 
 ```
 ```
 If the user doesn't need to tune the rgb values, he/she can follow this step.
