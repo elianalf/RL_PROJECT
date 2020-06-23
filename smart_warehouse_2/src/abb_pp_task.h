@@ -24,10 +24,10 @@ class PICK_PLACE_TASK {
 
     PICK_PLACE_TASK(string name_);
     void run();
-    void moveit_abb(double px, double py, double pz);
+    bool moveit_abb(double px, double py, double pz);
     void executeCB( const smart_warehouse_2::box_posGoalConstPtr &goal );
     void preemptCB();
-
+   void abort_handler();
   private:
    
    ros::NodeHandle _n;
