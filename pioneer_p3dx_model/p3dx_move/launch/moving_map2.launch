@@ -4,6 +4,9 @@
 <!--- Run gmapping -->
   <include file="$(find p3dx_move)/launch/amcl.launch">
     <arg name="nas" value="p3dx_2"/>
+    <arg name="initial_pose_x" value="2.0"/>
+    <arg name="initial_pose_y" value="-3.0"/>
+    <arg name="initial_pose_a" value="0.0"/>
   </include>
   <!--- Run Move Base -->
   <include file="$(find p3dx_move)/launch/move_base.launch" >
