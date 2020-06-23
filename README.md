@@ -10,6 +10,10 @@ $ cd <catkin_ws>/src
 $ git clone https://github.com/elianalf/RL_PROJECT.git 
 $ cd ..
 $ catkin_make
+
+If there are some errors about the compilation of the packages "smart_warehouse_2" and "smartwarehouse_opencv" it is recommended:
+$ catkin_make -DCATKIN_WHITELIST_PACKAGES="smart_warehouse_2"
+$ catkin_make -DCATKIN_WHITELIST_PACKAGES="smartwarehouse_opencv"
 ```
 
 # To use:
