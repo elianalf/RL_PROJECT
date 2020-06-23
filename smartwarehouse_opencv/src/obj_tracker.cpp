@@ -13,7 +13,7 @@ int high_g = 1;
 int high_b = 1;
 
  void box_tracking::_get_model_name(double px, double py, double pz, string& box_name){
-   
+    //** Find the model name of the nearest box to the box in position (px,py,pz) **
    double min_d=1000;
    int index =-1;
    for(int j=0; j<init_pose.size(); j++){
@@ -220,6 +220,7 @@ void box_tracking::track_rectangle() {
    a_c.waitForServer(); //will wait for infinite time
    cout << "Server is ready" << endl;
    smart_warehouse_2::box_posGoal pos_goal;
+   smart_warehouse_2::box_posResult result;
    int low_rgb[3]; int high_rgb[3];  
    vector<Point> rectangle_center;
    double cx, cy, fx_inv, fy_inv;
@@ -264,12 +265,13 @@ void box_tracking::track_rectangle() {
         cz_c1 = zd_c1;
          // cout << "Position in camera frame: (" << cx_c1 << ", " << cy_c1 << ", " << cz_c1 << ")" << endl; 
           
+          // ** Trasformation from camera frame to world frame **
           Rot_matrix_.setRPY(3.14, 0, -1.57);
           double px=(Rot_matrix_[0].x() * cx_c1)+(Rot_matrix_[0].y() * cy_c1)+(Rot_matrix_[0].z()* cz_c1) - 1.5;
           double py=(Rot_matrix_[1].x() * cx_c1)+(Rot_matrix_[1].y() * cy_c1)+(Rot_matrix_[1].z()* cz_c1) -0.02;
           double pz=(Rot_matrix_[2].x() * cx_c1)+(Rot_matrix_[2].y() * cy_c1)+(Rot_matrix_[2].z()* cz_c1) + 1.88; 
            
-          
+          // ** Send the goal to the action server **
            _get_model_name(px, py, pz, pos_goal.box_name);
           pos_goal.x_box = px;
           pos_goal.y_box = py;
@@ -284,13 +286,18 @@ void box_tracking::track_rectangle() {
 			           box_moved = true;
 		       }
 		       else if(a_c.getState() == actionlib::SimpleClientGoalState::ABORTED) {
-		         cout<<"The goal was ABORTED by the action server due to some failure"<<endl;
+		          cout<<"The goal was ABORTED by the action server due to some failure"<<endl;
+               usleep(2000000);
+               cout<<"Resending goal"<<endl;
+               a_c.sendGoal(pos_goal);
+               a_c.waitForResult();
+		         
 		       }
            }
            
        }
        else{
-         
+         // ** If there are no more boxes of that colour, search for the other one ** 
          first_col=!first_col;
        }
       
