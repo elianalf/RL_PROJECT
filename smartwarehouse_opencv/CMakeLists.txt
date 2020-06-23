@@ -72,7 +72,7 @@ find_package(catkin REQUIRED COMPONENTS
    DIRECTORY 
    action
    FILES
-  box_pos.action
+   box_pos.action
  )
 
 ## Generate added messages and services with any dependencies listed here

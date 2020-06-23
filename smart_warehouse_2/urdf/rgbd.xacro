@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 
 <robot name="sensor" xmlns:xacro="http://www.ros.org/wiki/xacro">
-  <xacro:include filename="$(find opencv_tutorial)/urdf/base.xacro"/>
+  <xacro:include filename="$(find smart_warehouse_2)/urdf/base.xacro"/>
   <gazebo reference="sensor">
   	 <sensor type="depth" name="$depth_camera">
         <always_on>true</always_on>

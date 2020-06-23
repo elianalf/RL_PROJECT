@@ -10,6 +10,7 @@ project(smart_warehouse_2)
 find_package(catkin REQUIRED COMPONENTS
   
   genmsg
+  actionlib
   actionlib_msgs
   moveit_core
   tf

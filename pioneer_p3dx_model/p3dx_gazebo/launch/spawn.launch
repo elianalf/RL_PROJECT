@@ -9,7 +9,7 @@
     <arg name="robot_model" default="$(find p3dx_description)/urdf/pioneer3dx.xacro"/>
     <param name="robot_description" command="$(find xacro)/xacro '$(arg robot_model)'" />
 
-    <node name="spawn_robot" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen" args="-urdf 
+    <node name="$(arg namespace_arg)spawn_robot" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen" args="-urdf 
                 -unpause
                 -urdf
                 -param /$(arg namespace_arg)/robot_description 

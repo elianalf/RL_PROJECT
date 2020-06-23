@@ -18,8 +18,8 @@
 	     <rosparam file="$(find p3dx_move)/param/$(arg nas)_move_base_params.yaml" command="load"/>
 	   
 	   
-	     <param name="local_costmap/width" value="3.0"/>
-	     <param name="local_costmap/height" value="3.0"/> 
+	     <param name="local_costmap/width" value="13.0"/>
+	     <param name="local_costmap/height" value="13.0"/> 
 	     <param name="global_costmap/width" value="40.0" if="$(arg no_static_map)"/>
 	     <param name="global_costmap/height" value="40.0" if="$(arg no_static_map)"/>
 		 <!-- global costmap with laser, for odom_navigation_demo -->

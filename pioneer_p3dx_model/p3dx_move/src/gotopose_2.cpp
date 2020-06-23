@@ -32,7 +32,7 @@ int main(int argc, char** argv){
 	
 	MoveBaseClient _ac("p3dx_2/move_base", true);
 	
-	_base.target_pose.pose.position.x = 2.20;
+	_base.target_pose.pose.position.x = 2.15;
 	_base.target_pose.pose.position.y = -3.0;
 	_base.target_pose.pose.orientation.w = 6.0;
 	_base.target_pose.header.frame_id = "map";
@@ -77,6 +77,7 @@ int main(int argc, char** argv){
 		    }
 		  else{reached.data=3;
 				_topic_pub.publish(reached); //retry
+				_ac.sendGoal(_base);
 		  	}
 		    }
 
