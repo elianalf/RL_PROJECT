@@ -90,11 +90,11 @@ $ rosrun smart_warehouse_2 abb_pp_task
 # Note:
 ```
 It's possible to launch a world with 2 Pioneers 3DX, it's not necessary to accomplish the task but it would have been a shame to delete it.
-To make it available go to /smart_warehouse_2/warehouse.launch and uncomment the last part od the code, then between steps 5) and 6)  
+To make it available go to /smart_warehouse_2/warehouse.launch and uncomment the last part od the code, in  pioneer_p3dx_model/p3dx_move/src/p3dx_manager.cpp set the variable p3dx_2_ready to "true"(row 86), get back to catkin_ws/ and launch the command "$ catkin_make". Then between steps 5) and 6)
 5.1) 
 $ roslaunch p3dx_move moving_map2.launch
 5.2) 
-$ rosrun p3dx_move pioneer_p3dx_1
+$ rosrun p3dx_move pioneer_p3dx_2
 to work together ad their best the system needs more testing, check the report for issues.
 
 
