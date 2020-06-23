@@ -58,7 +58,7 @@ $ roslaunch smart_warehouse_2 warehouse2.launch
 2)Go to /smartwarehouse_opencv/launch/identify_boxes.launch and change the value of the parameter "set_RGB" to TRUE and launch it.
 $ roslaunch smartwarehouse_opencv identify_boxes.launch
 
-3)Define the desired ranges of rgb values and change them into the identify_boxes.launch. Then change the value of the parameter "set_RGB" to FALSE and launch it again as step 2). Finally execute from step 4) onwards of the following steps. 
+3)Define the desired ranges of rgb values and change them into the identify_boxes.launch. Then change the value of the parameter "set_RGB" to FALSE and launch it again as the previous step 2). Finally execute the step 2) (Launch Move-it! Core) and from step 4) onwards of the following steps. 
 ```
 ```
 If the user doesn't need to tune the rgb values, he/she can follow this step.
@@ -67,7 +67,7 @@ Every step has to be done in all separate shells:
 1)Launching Gazebo and spawning robots
 $ roslaunch smart_warehouse_2 warehouse2.launch
 
-2)Launch Move-it! Core
+2)Launch Move-it! Core. After the launch it's possible to close the gui of RVIZ (RVIZ window).
 $ roslaunch abb_irb6640_gazebo moveit_planning_execution_gazebo.launch 
 
 3)Run object-tracker node 
