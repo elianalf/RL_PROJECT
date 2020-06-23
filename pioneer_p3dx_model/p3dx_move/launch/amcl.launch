@@ -8,8 +8,8 @@
   <arg name="initial_pose_y" default="-4.0"/>
   <arg name="initial_pose_a" default="0.0"/>
 	
-	<arg name="map_file" default="$(find p3dx_move)/maps/world.yaml" />
-	<node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" />
+	<arg name="map_file" default="$(find p3dx_move)/maps/world2.yaml" />
+	<node name="$(arg nas)map_server" pkg="map_server" type="map_server" args="$(arg map_file)" />
 
 	  <node pkg="amcl" type="amcl" name="amcl">
 	    <param name="use_map_topic"             value="true"/>
