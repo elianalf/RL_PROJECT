@@ -14,14 +14,14 @@ $ catkin_make
 
 # To use:
 ```
-To make sure your workspace is properly overlayed by the setup script.
+To make sure your workspace is properly overlayed by the setup script:
 $ source <catkin_ws>/devel/setup.sh
 to launch the system see Execution Example
 
-
+```
 # Necessary dependencies :
 
-
+```
 --move base and navigation-- 
 $ move_base sudo apt-get install ros-melodic-move-base ros-melodic-move-base-msgs 
 $ gmapping sudo apt-get install ros-melodic-gmapping
@@ -45,9 +45,10 @@ position_controllers
 joint_trajectory_controller
 robot_state_publisher
 ros_controllers
-
+```
 
 # Execution Example:
+```
 every step has to be done in all separate shells
 
 1)Launching Gazebo and spawning robots
