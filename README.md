@@ -25,10 +25,10 @@ to launch the system see Execution Example
 --move base and navigation-- 
 $ move_base sudo apt-get install ros-melodic-move-base ros-melodic-move-base-msgs 
 $ gmapping sudo apt-get install ros-melodic-gmapping
-$ amcl $ sudo apt-get install ros-melodic-amcl
+$ sudo apt-get install ros-melodic-amcl
 
 --OpenCV--
-OpenCv can be compiled and installed after downloaded the desired version on this page. https://github.com/opencv/opencv/tree/4.3.0.
+OpenCv can be compiled and installed after downloaded the desired version on this page: https://github.com/opencv/opencv/tree/4.3.0
 
 --Move-it!, ros-industrial and ABB stack--
 $ sudo apt-get install ros-melodic-moveit ros-melodic-moveit-plugins ros-melodic-moveit-planners
@@ -49,7 +49,20 @@ ros_controllers
 
 # Execution Example:
 ```
-every step has to be done in all separate shells
+If the user needs to tune the rgb exact values the camera has to detect, he/she can follow this step.
+Every step has to be done in all separate shells:
+
+1)Launching Gazebo and spawning robots
+$ roslaunch smart_warehouse_2 warehouse2.launch
+
+2)Go to /smartwarehouse_opencv/launch/identify_boxes.launch and change the value of the parameter "set_RGB" to TRUE and launch it.
+$ roslaunch smartwarehouse_opencv identify_boxes.launch
+
+3)Define the desired range of rgb values and change them into the identify_boxes.launch. Then change the value of the parameter "set_RGB" to FALSE and launch it again as step 2). Finally execute from step 4) onwards of the following steps. 
+```
+```
+If the user doesn't need to tune the rgb values, he/she can follow this step.
+Every step has to be done in all separate shells:
 
 1)Launching Gazebo and spawning robots
 $ roslaunch smart_warehouse_2 warehouse2.launch
@@ -57,7 +70,7 @@ $ roslaunch smart_warehouse_2 warehouse2.launch
 2)Launch Move-it! Core
 $ roslaunch abb_irb6640_gazebo moveit_planning_execution_gazebo.launch 
 
-3)Run object-tracker node
+3)Run object-tracker node 
 $ rosrun smartwarehouse_opencv obj_tracker
 
 4)Launch pioneer move base and AMCL
@@ -68,6 +81,9 @@ $ rosrun p3dx_move pioneer_p3dx_1
 
 6) Run Pioneer manager node
 $ rosrun p3dx_move p3dx_manager
+
+7)Run ABB pick and place task manager
+$ rosrun smart_warehouse_2 abb_pp_task 
 ```
 
 
