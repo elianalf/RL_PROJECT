@@ -973,7 +973,7 @@
       <pose frame=''>-0.609815 0.508477 0.215866 0 -0 0</pose>
     </model>
     <state world_name='default'>
-      <sim_time>415 649000000</sim_time>
+      <sim_time>0</sim_time>
       <real_time>442 411004538</real_time>
       <wall_time>1591433794 796971744</wall_time>
       <iterations>415649</iterations>
@@ -1092,16 +1092,6 @@
         <scale>1 1 1</scale>
         <link name='link'>
           <pose frame=''>-0.620332 0.156611 0.219289 0 -0 0</pose>
-          <velocity>0 0 0 0 -0 0</velocity>
-          <acceleration>0 0 0 0 -0 0</acceleration>
-          <wrench>0 0 0 0 -0 0</wrench>
-        </link>
-      </model>
-      <model name='camera'>
-        <pose frame=''>-1.5 0 2 3.14159 1.57079 3.14159</pose>
-        <scale>1 1 1</scale>
-        <link name='sensor'>
-          <pose frame=''>-1.5 0 2 3.14159 1.57079 3.14159</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
@@ -1231,12 +1221,5 @@
         <pose frame=''>0 0 10 0 -0 0</pose>
       </light>
     </state>
-    <gui fullscreen='0'>
-      <camera name='user_camera'>
-        <pose frame=''>6.27601 0.31519 1.95552 -0 0.255643 -2.971</pose>
-        <view_controller>orbit</view_controller>
-        <projection_type>perspective</projection_type>
-      </camera>
-    </gui>
   </world>
 </sdf>
