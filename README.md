@@ -27,9 +27,15 @@ to launch the system see Execution Example
 
 ```
 --move base and navigation-- 
-$ move_base sudo apt-get install ros-melodic-move-base ros-melodic-move-base-msgs 
-$ gmapping sudo apt-get install ros-melodic-gmapping
+move_base 
+$  sudo apt-get install ros-melodic-move-base ros-melodic-move-base-msgs 
+gmapping 
+$  sudo apt-get install ros-melodic-gmapping
+amcl
 $ sudo apt-get install ros-melodic-amcl
+
+$ sudo apt-get install ros-melodic-map-server
+$ sudo apt-get install ros-melodic-dwa-local-planner
 
 --OpenCV--
 OpenCv can be compiled and installed after downloaded the desired version on this page: https://github.com/opencv/opencv/tree/4.3.0
