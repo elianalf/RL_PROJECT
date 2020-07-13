@@ -1,5 +1,8 @@
 #include "abb_pp_task.h"
 
+#include <eigen3/Eigen/Core>
+#include <eigen3/Eigen/Geometry>
+
 
 using namespace std;
 using namespace tf;
@@ -16,7 +19,21 @@ double pyo_red = 1.8;
 double pzo_ = 0.31;
 double pxo_blue = 1.95;
 double pyo_blue = 2.15;
+float abb_z;
+float abb_y;
+float abb_x;
+float abb_yaw;
 
+Eigen::Matrix<double,3,3> rotation_matrix3;
+
+
+//LOAD COORDINATE COMPONENT
+void load_param( float & p, float def, string name ) {
+  ros::NodeHandle n_param;
+  if( !n_param.getParam( name, p))
+    p = def;
+  cout << name << ": " << "\t" << p << endl;
+}
 
 PICK_PLACE_TASK::PICK_PLACE_TASK(string name_) :
   a_s(_n, name_, boost::bind(&PICK_PLACE_TASK::executeCB, this, _1), false),
@@ -25,11 +42,22 @@ PICK_PLACE_TASK::PICK_PLACE_TASK(string name_) :
         
    	Pioneer_pub=_n.advertise<std_msgs::String>("/Warehouse/NewBox",20);
  
-   Rot_matrix_.setRPY(0, 0, 3.14); //** Rotation matrix to transform in robot base frame **
-
+        Rot_matrix_.setRPY(0, 0, 3.14); //** Rotation matrix to transform in robot base frame **
+	float def=0.0;
+        load_param( abb_yaw, def , "abb_yaw" );
+        load_param( abb_x, def , "abb_x" );
+        load_param( abb_y,def , "abb_y" );
+        load_param( abb_z, def , "abb_z" );
+        
+        Eigen::Vector3f ea(abb_yaw, 0 ,0);
+    
+    rotation_matrix3 = Eigen::AngleAxisd(ea[0], Eigen::Vector3d::UnitZ()) * 
+                       Eigen::AngleAxisd(ea[1], Eigen::Vector3d::UnitY()) * 
+                       Eigen::AngleAxisd(ea[2], Eigen::Vector3d::UnitX());
+	
 	start_pose.orientation.x = 0;
-   start_pose.orientation.y = 1;
-   start_pose.orientation.z = 0;
+        start_pose.orientation.y = 1;
+        start_pose.orientation.z = 0;
 	start_pose.orientation.w = 0;
 	start_pose.position.x = 1.91;
 	start_pose.position.y = 0;
@@ -40,10 +68,10 @@ PICK_PLACE_TASK::PICK_PLACE_TASK(string name_) :
 	place_pose = start_pose;
 	
 	place_pose.position.x = pxo_red;
-   place_pose.position.y = pyo_red;
-   place_pose.position.z = pzo_;
+        place_pose.position.y = pyo_red;
+        place_pose.position.z = pzo_;
 	
-  
+     
   a_s.start();
   
    
@@ -174,23 +202,26 @@ bool PICK_PLACE_TASK::moveit_abb(double px, double py, double pz){
 	move_group.setStartStateToCurrentState();
    usleep(50);
    
-   pick_pose.position.z = 1.1;
-   move_group.setPoseTarget(pick_pose);
-   success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-   //ROS_INFO_NAMED("abb_moveit_info", "Pick pose: %s", success ? "REACHABLE POSITION" : "FAILED"); 
-   success_pick = (move_group.move() == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-   usleep(500);
+  pick_pose.position.z = 1.1;
+   moveit_msgs::RobotTrajectory trajectory;
+   std::vector<geometry_msgs::Pose> waypoints;
+   const double jump_threshold = 0.0;
+   const double eef_step = 0.01;
+    waypoints.push_back(pick_pose);
+   waypoints.push_back(place_pose);
+      place_pose.position.z = pzo_;
+      
+   waypoints.push_back(place_pose);
    
-   move_group.clearPoseTargets();
-	move_group.setStartStateToCurrentState();
-	
+   move_group.setPlanningTime(15);
+   
+   double fraction = move_group.computeCartesianPath(waypoints, eef_step, jump_threshold, trajectory);
+   ROS_INFO_NAMED("tutorial", "Visualizing plan 4 (Cartesian path) (%.2f%% acheived)", fraction * 100.0);
+  
    
    //** PLACE BOX **
-   move_group.setPoseTarget(place_pose);
-   success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-   ROS_INFO_NAMED("abb_moveit_info", "High place pose: %s", success ? "REACHABLE POSITION" : "FAILED");  
-   success_place = (move_group.move() == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-   usleep(50);
+     success_place= (move_group.execute(trajectory)==moveit::planning_interface::MoveItErrorCode::SUCCESS);
+   ROS_INFO_NAMED("abb_moveit_info", "execution: %s", success ? "SUCCESS" : "FAILED");  
    if(!success_place){
       cout<<"Place pose failed"<<endl;
       abort_handler();
@@ -200,21 +231,21 @@ bool PICK_PLACE_TASK::moveit_abb(double px, double py, double pz){
       usleep(500000);
       //** Now try to reach the place pose from the start pose
 	   move_group.setPoseTarget(place_pose);
-      success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
+      success = (move_group.plan(my_plan)==moveit::planning_interface::MoveItErrorCode::SUCCESS);
       ROS_INFO_NAMED("abb_moveit_info", "High place pose: %s", success ? "REACHABLE POSITION" : "FAILED");  
       success_place = (move_group.move() == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-	}
-   move_group.clearPoseTargets();
-	move_group.setStartStateToCurrentState();
-   place_pose.position.z = pzo_;
+	
+      move_group.clearPoseTargets();
+      move_group.setStartStateToCurrentState();
+      place_pose.position.z = pzo_;
   
    
-	move_group.setPoseTarget(place_pose);
-   success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
+      move_group.setPoseTarget(place_pose);
+      success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
    //ROS_INFO_NAMED("abb_moveit_info", "Place pose: %s", success ? "REACHABLE POSITION" : "FAILED");  
    success_place = (move_group.move() == moveit::planning_interface::MoveItErrorCode::SUCCESS);
    usleep(50);
-   
+   }
    if(success_place){ //** Detach **
       system(shell_command_detach.c_str());
       ROS_INFO_STREAM("detaching... and publishing");
@@ -261,12 +292,20 @@ void PICK_PLACE_TASK::executeCB( const smart_warehouse_2::box_posGoalConstPtr &g
    double pxo = goal->x_box;
    double pyo = goal->y_box;
    double pzo = goal->z_box;
-   
-   double pxr=(Rot_matrix_[0].x() * pxo)+(Rot_matrix_[0].y() * pyo)+(Rot_matrix_[0].z()* pzo) + 0.5;
-   double pyr=(Rot_matrix_[1].x() * pxo)+(Rot_matrix_[1].y() * pyo)+(Rot_matrix_[1].z()* pzo) - 1.5;
+   /* OLD 
+   double pxr=(Rot_matrix_[0].x() * pxo)+(Rot_matrix_[0].y() * pyo)+(Rot_matrix_[0].z()* pzo)+0.5;
+   double pyr=(Rot_matrix_[1].x() * pxo)+(Rot_matrix_[1].y() * pyo)+(Rot_matrix_[1].z()* pzo)-1.5;
    double pzr=(Rot_matrix_[2].x() * pxo)+(Rot_matrix_[2].y() * pyo)+(Rot_matrix_[2].z()* pzo) + 0.18;   
    
-   cout<<"New pos. in robot base frame: "<<pxr<<" "<<pyr<<" "<<pzr<<endl;
+   cout<<"New pos. in robot base frame: "<<pxr<<" "<<pyr<<" "<<pzr<<endl; */
+   
+   Eigen::Matrix<double,3,1> traslation(abb_x,abb_y,abb_z+0.18);
+   Eigen::Matrix<double,3,1> pose(pxo,pyo,pzo);
+   pose=rotation_matrix3*pose+traslation;
+   double pxr=pose[0];
+   double pyr=pose[1];
+   double pzr=pose[2];
+   cout<<"New pos. in robot base frame with EIGEN : "<<pose<<endl;
   // while (!a_s.isPreemptRequested() && !task_completed) {
   
   while ( !task_complete) {

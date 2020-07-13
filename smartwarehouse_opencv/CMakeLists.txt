@@ -12,6 +12,9 @@ find_package(catkin REQUIRED COMPONENTS
   image_transport
   roscpp
   tf
+  tf2
+  tf2_ros
+  geometry_msgs
   sensor_msgs
   std_msgs
   roslib
@@ -19,6 +22,10 @@ find_package(catkin REQUIRED COMPONENTS
   genmsg
   actionlib_msgs
 )
+
+#EIGEN
+find_package(Eigen3 REQUIRED)
+include_directories(${Eigen_INCLUDE_DIRS})
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)

@@ -1,4 +1,9 @@
 #include "obj_tracker.h"
+
+#include <eigen3/Eigen/Core>
+#include <eigen3/Eigen/Geometry>
+
+
 using namespace std;
 using namespace cv;
 using namespace tf;
@@ -11,6 +16,15 @@ int low_b = 0;
 int high_r = 225;
 int high_g = 1;
 int high_b = 1;
+
+double rgbd_roll;
+double rgbd_yaw;
+double rgbd_pitch;
+double rgbd_x;
+double rgbd_y;
+double rgbd_z;
+Eigen::Matrix<double,3,3> rotation_matrix3;
+Eigen::Matrix<double,3,3> rotation_matrix3_2;
 
  void box_tracking::_get_model_name(double px, double py, double pz, string& box_name){
     //** Find the model name of the nearest box to the box in position (px,py,pz) **
@@ -74,7 +88,7 @@ void on_high_b_thresh_trackbar(int, void *) {
 
 //LOAD TOPIC
 void load_param( string & p, string def, string name ) {
-  ros::NodeHandle n_param("~");
+  ros::NodeHandle n_param;
   if( !n_param.getParam( name, p))
     p = def;
   cout << name << ": " << "\t" << p << endl;
@@ -82,15 +96,24 @@ void load_param( string & p, string def, string name ) {
 
 //LOAD THRESHOLD AND RATE
 void load_param( int & p, int def, string name ) {
-  ros::NodeHandle n_param("~");
+  ros::NodeHandle n_param;
+  if( !n_param.getParam( name, p))
+    p = def;
+  cout << name << ": " << "\t" << p << endl;
+}
+//LOAD COORDINATE COMPONENT
+void load_param( double & p, double def, string name ) {
+  ros::NodeHandle n_param;
   if( !n_param.getParam( name, p))
     p = def;
   cout << name << ": " << "\t" << p << endl;
 }
 
+
+
 //TUNING TRUE OR FALSE
 void load_param( bool & p, bool def, string name ) {
-  ros::NodeHandle n_param("~");
+  ros::NodeHandle n_param;
   if( !n_param.getParam( name, p))
     p = def;
   cout << name << ": " << "\t" << p << endl;
@@ -124,6 +147,25 @@ box_tracking::box_tracking() {
     load_param( _high_r_2, 1, "high_r_2");
     load_param( _high_g_2, 1, "high_g_2");
     load_param( _high_b_2, 225, "high_b_2");
+    double def=0.0;
+    load_param( rgbd_roll, def , "rgbd_roll" );
+    load_param( rgbd_yaw, def , "rgbd_yaw" );
+    load_param( rgbd_pitch, def , "rgbd_pitch" );
+    load_param( rgbd_x, def , "rgbd_x" );
+    load_param( rgbd_y,def , "rgbd_y" );
+    load_param( rgbd_z, def , "rgbd_z" );
+    
+    
+    Eigen::Vector3f ea(rgbd_yaw, rgbd_pitch ,rgbd_roll);
+    Eigen::Vector3f ea_camera_rgbd(-1.57, 0 ,-1.57);
+    
+    rotation_matrix3 = Eigen::AngleAxisd(ea[0], Eigen::Vector3d::UnitZ()) * 
+                       Eigen::AngleAxisd(ea[1], Eigen::Vector3d::UnitY()) * 
+                       Eigen::AngleAxisd(ea[2], Eigen::Vector3d::UnitX());
+    rotation_matrix3_2 = Eigen::AngleAxisd( ea_camera_rgbd[0], Eigen::Vector3d::UnitZ()) * 
+                       Eigen::AngleAxisd( ea_camera_rgbd[1], Eigen::Vector3d::UnitY()) * 
+                       Eigen::AngleAxisd( ea_camera_rgbd[2], Eigen::Vector3d::UnitX());
+    cout << "rotation matrix3 =\n" << rotation_matrix3 << endl;
     
     _gazebo_sub = _nh.subscribe( "/gazebo/model_states", 0, &box_tracking::model_states_cb, this );
     _img_sub = _nh.subscribe( _img_topic.c_str(), 0, &box_tracking::cam_cb, this );
@@ -222,9 +264,10 @@ void box_tracking::track_rectangle() {
    smart_warehouse_2::box_posGoal pos_goal;
    smart_warehouse_2::box_posResult result;
    int low_rgb[3]; int high_rgb[3];  
-   vector<Point> rectangle_center;
+   vector<Point> rectangle_center_blue;
+   vector<Point> rectangle_center_red;
    double cx, cy, fx_inv, fy_inv;
-   double cx_c1, cy_c1, cz_c1;
+   vector<double> cx_c, cy_c, cz_c;
    float zd_c1;
    float zd_c2;
    Matrix3x3 Rot_matrix_;
@@ -233,47 +276,147 @@ void box_tracking::track_rectangle() {
       bool box_moved = false;
       img = _src;
       depth = _depth_src;
-       if(first_col){ //RED
-          low_rgb[0] = _low_r_1;
-          low_rgb[1] = _low_g_1;
-          low_rgb[2] = _low_b_1;
-          high_rgb[0] = _high_r_1;
-          high_rgb[1] = _high_g_1;
-          high_rgb[2] = _high_b_1;
-          pos_goal.color="red";
-       }
-       else{           //BLUE
-          low_rgb[0] = _low_r_2;
-          low_rgb[1] = _low_g_2;
-          low_rgb[2] = _low_b_2;
-          high_rgb[0] = _high_r_2;
-          high_rgb[1] = _high_g_2;
-          high_rgb[2] = _high_b_2;
-          pos_goal.color = "blue";
-       }
       
-      
-      if(get_rectangle( img, low_rgb, high_rgb,  rectangle_center)){    
+	//scopriamo se ci sono sia rossi che blu
+	int red_exist=0;
+	int blue_exist=0;
+	int total_exist=0;
+      //elaboro i Rossi
+      low_rgb[0] = _low_r_1;
+      low_rgb[1] = _low_g_1;
+      low_rgb[2] = _low_b_1;
+      high_rgb[0] = _high_r_1;
+      high_rgb[1] = _high_g_1;
+      high_rgb[2] = _high_b_1;
+      if(get_rectangle( img, low_rgb, high_rgb,  rectangle_center_red)){
+		red_exist=1;
+      }
+
+
+	low_rgb[0] = _low_r_2;
+	low_rgb[1] = _low_g_2;
+	low_rgb[2] = _low_b_2;
+	high_rgb[0] = _high_r_2;
+	high_rgb[1] = _high_g_2;
+	high_rgb[2] = _high_b_2;
+	if(get_rectangle( img, low_rgb, high_rgb,  rectangle_center_blue)){
+		blue_exist=2;
+	}
+	total_exist=red_exist+blue_exist;
+	switch (total_exist){
+	case 1 : //only reds exist;
+	cout<<"only REDS";
+	cx_c.resize(rectangle_center_red.size());  
+        cy_c.resize(rectangle_center_red.size());  
+        cz_c.resize(rectangle_center_red.size());
+        for(int p=0;p<rectangle_center_red.size();p++){  
         cx = _cam_cameraMatrix->at<double>(0,2);
         cy = _cam_cameraMatrix->at<double>(1,2);
         fx_inv = 1.0 / _cam_cameraMatrix->at<double>(0,0);
         fy_inv = 1.0 / _cam_cameraMatrix->at<double>(1,1);
         
-        zd_c1 = depth.at<float>(rectangle_center[0].y,rectangle_center[0].x);
-        cx_c1 = (zd_c1) * ( (rectangle_center[0].x - cx) * fx_inv );
-        cy_c1 = (zd_c1) * ( (rectangle_center[0].y - cy) * fy_inv );
-        cz_c1 = zd_c1;
-         // cout << "Position in camera frame: (" << cx_c1 << ", " << cy_c1 << ", " << cz_c1 << ")" << endl; 
-          
-          // ** Trasformation from camera frame to world frame **
-          Rot_matrix_.setRPY(3.14, 0, -1.57);
-          double px=(Rot_matrix_[0].x() * cx_c1)+(Rot_matrix_[0].y() * cy_c1)+(Rot_matrix_[0].z()* cz_c1) - 1.5;
-          double py=(Rot_matrix_[1].x() * cx_c1)+(Rot_matrix_[1].y() * cy_c1)+(Rot_matrix_[1].z()* cz_c1) -0.02;
-          double pz=(Rot_matrix_[2].x() * cx_c1)+(Rot_matrix_[2].y() * cy_c1)+(Rot_matrix_[2].z()* cz_c1) + 1.88; 
+        zd_c1 = depth.at<float>(rectangle_center_red[p].y,rectangle_center_red[p].x);
+        cx_c[p] = (zd_c1) * ( (rectangle_center_red[p].x - cx) * fx_inv );
+        cy_c[p] = (zd_c1) * ( (rectangle_center_red[p].y - cy) * fy_inv );
+        cz_c[p] = zd_c1;
+        
+        }
+          pos_goal.color = "red";
+        break;
+	case 2 : //only blues exist;
+	cout<<"only BLUES";
+	cx_c.resize(rectangle_center_blue.size());  
+	cy_c.resize(rectangle_center_blue.size());  
+	cz_c.resize(rectangle_center_blue.size());
+	for(int p=0;p<rectangle_center_blue.size();p++){  
+	cx = _cam_cameraMatrix->at<double>(0,2);
+	cy = _cam_cameraMatrix->at<double>(1,2);
+	fx_inv = 1.0 / _cam_cameraMatrix->at<double>(0,0);
+	fy_inv = 1.0 / _cam_cameraMatrix->at<double>(1,1);
+
+	zd_c1 = depth.at<float>(rectangle_center_blue[p].y,rectangle_center_blue[p].x);
+	cx_c[p] = (zd_c1) * ( (rectangle_center_blue[p].x - cx) * fx_inv );
+	cy_c[p] = (zd_c1) * ( (rectangle_center_blue[p].y - cy) * fy_inv );
+	cz_c[p] = zd_c1;
+	
+	}
+          pos_goal.color = "blue";
+	break;
+	case 3 : //both exist; choose  the most numerous
+	cout<<"BOTH BLUES AND REDS";
+        if(rectangle_center_blue.size()>rectangle_center_red.size()){ //choose blue
+        cx_c.resize(rectangle_center_blue.size());  
+	cy_c.resize(rectangle_center_blue.size());  
+	cz_c.resize(rectangle_center_blue.size());
+	for(int p=0;p<rectangle_center_blue.size();p++){  
+	cx = _cam_cameraMatrix->at<double>(0,2);
+	cy = _cam_cameraMatrix->at<double>(1,2);
+	fx_inv = 1.0 / _cam_cameraMatrix->at<double>(0,0);
+	fy_inv = 1.0 / _cam_cameraMatrix->at<double>(1,1);
+
+	zd_c1 = depth.at<float>(rectangle_center_blue[p].y,rectangle_center_blue[p].x);
+	cx_c[p] = (zd_c1) * ( (rectangle_center_blue[p].x - cx) * fx_inv );
+	cy_c[p] = (zd_c1) * ( (rectangle_center_blue[p].y - cy) * fy_inv );
+	cz_c[p] = zd_c1;
+	}
+	pos_goal.color = "blue";
+        cout<<" \n FIRST BLUES";
+        }
+        else{ //if less or equal choose red
+        cx_c.resize(rectangle_center_red.size());  
+        cy_c.resize(rectangle_center_red.size());  
+        cz_c.resize(rectangle_center_red.size());
+        for(int p=0;p<rectangle_center_red.size();p++){  
+        cx = _cam_cameraMatrix->at<double>(0,2);
+        cy = _cam_cameraMatrix->at<double>(1,2);
+        fx_inv = 1.0 / _cam_cameraMatrix->at<double>(0,0);
+        fy_inv = 1.0 / _cam_cameraMatrix->at<double>(1,1);
+        
+        zd_c1 = depth.at<float>(rectangle_center_red[p].y,rectangle_center_red[p].x);
+        cx_c[p] = (zd_c1) * ( (rectangle_center_red[p].x - cx) * fx_inv );
+        cy_c[p] = (zd_c1) * ( (rectangle_center_red[p].y - cy) * fy_inv );
+        cz_c[p] = zd_c1;
+       
+        }
+          pos_goal.color = "red";
+          cout<<"\n FIRST REDS \n ";
+        }
+        break;
+        }
+        
+        //once you choose the color, choose the nearest box
+        int chosen=0;
+        for(int p=1;p<rectangle_center_red.size();p++){
+        if(cz_c[p]>cz_c[chosen]){chosen=p;}
+        }
+        
+        
+
+        
+	Eigen::Matrix<double,3,1> traslation(rgbd_x,rgbd_y-0.02,rgbd_z-0.12);
+		
+	Eigen::Matrix<double,3,1> pose(cx_c[chosen],cy_c[chosen],cz_c[chosen]);
+        pose=rotation_matrix3*rotation_matrix3_2*pose+traslation;
+        Rot_matrix_.setRPY(3.14, 0, -1.57);
+       	
+       	
+       	/* OLD TRASFORMATION
+         double px=(Rot_matrix_[0].x() * cx_c[chosen])+(Rot_matrix_[0].y() * cy_c[chosen])+(Rot_matrix_[0].z()* cz_c[chosen]) - 1.5;
+          double py=(Rot_matrix_[1].x() * cx_c[chosen])+(Rot_matrix_[1].y() * cy_c[chosen])+(Rot_matrix_[1].z()* cz_c[chosen]) -0.02;
+          double pz=(Rot_matrix_[2].x() * cx_c[chosen])+(Rot_matrix_[2].y() * cy_c[chosen])+(Rot_matrix_[2].z()* cz_c[chosen]) + 1.88; 
+         
+        // ** Send the goal to the action server **
+        ROS_INFO("after x y z %.2f %.2f %.2f",px,py,pz);*/
+        cout<<" \n pose with eigen : "<<pose;
+        
+        
+        
+         double px=pose[0];         
+         double py=pose[1];         
+         double pz=pose[2]; 
            
-          // ** Send the goal to the action server **
-           _get_model_name(px, py, pz, pos_goal.box_name);
-          pos_goal.x_box = px;
+          _get_model_name(px,py, pz, pos_goal.box_name);
+          pos_goal.x_box =px;
           pos_goal.y_box = py;
           pos_goal.z_box = pz;
            cout<<"Sending position in world frame: "<<px<<" "<<py<<" "<<pz<<endl;
@@ -295,16 +438,10 @@ void box_tracking::track_rectangle() {
 		       }
            }
            
-       }
-       else{
-         // ** If there are no more boxes of that colour, search for the other one ** 
-         first_col=!first_col;
-       }
-      
+       
         r.sleep();
     }
 }
-
 
 void box_tracking::run() {
 
@@ -321,6 +458,7 @@ void box_tracking::run() {
 
 int main(int argc, char** argv) {
     ros::init( argc, argv, "object_tracker");
+    //3.1 Euler angle converted to rotation matrix
     box_tracking bt;
     bt.run();
 

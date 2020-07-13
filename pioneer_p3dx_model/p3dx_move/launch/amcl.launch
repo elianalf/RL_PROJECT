@@ -11,7 +11,7 @@
 	<arg name="map_file" default="$(find p3dx_move)/maps/world2.yaml" />
 	<node name="$(arg nas)map_server" pkg="map_server" type="map_server" args="$(arg map_file)" />
 
-	  <node pkg="amcl" type="amcl" name="amcl">
+	  <node pkg="amcl" type="amcl" name="amcl_$(arg nas)">
 	    <param name="use_map_topic"             value="true"/>
 	    <!-- Publish scans from best pose at a max of 10 Hz -->
 	    <param name="odom_model_type"           value="diff"/>

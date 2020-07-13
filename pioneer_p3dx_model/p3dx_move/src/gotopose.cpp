@@ -49,6 +49,9 @@ int main(int argc, char** argv){
 	ROS_INFO("newdata :%d",newdata);
 	ros::Rate r(5);
 	std_msgs::Int8 reached;
+	std_msgs::Int8 not_reached;
+	reached.data=0;
+	not_reached.data=3;
 	ROS_INFO("starting the loop");
 	while(ros::ok()){
 		if(newdata){
@@ -64,7 +67,7 @@ int main(int argc, char** argv){
 		    
 		    reached.data=1;
 		    _topic_pub.publish(reached);
-		    usleep(10000);		    
+		    usleep(10000);		    		    
 		    _base.target_pose.header.stamp = ros::Time::now();
 		    _ac.sendGoal(_base);
 		    _ac.waitForResult();
@@ -74,13 +77,12 @@ int main(int argc, char** argv){
 				_topic_pub.publish(reached);
 		  
 		    	}
-		   }
-		  else{reached.data=3;
-				_topic_pub.publish(reached);
-				_ac.sendGoal(_base);
-				}
 		    }
-
+		  else{reached.data=3;
+				_topic_pub.publish(reached); //retry
+				_ac.sendGoal(_base);
+		  	}
+		    }
 	
 	ros::spinOnce();
 	r.sleep();

@@ -22,6 +22,10 @@ find_package(catkin REQUIRED COMPONENTS
   roslib
 )
 
+#EIGEN
+find_package(Eigen3 REQUIRED)
+include_directories(${Eigen_INCLUDE_DIRS})
+
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 

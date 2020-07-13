@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+
+<launch>
+  <include file="$(find abb_irb6640_gazebo)/launch/moveit_planning_execution_gazebo.launch" />
+  
+  <node pkg="smartwarehouse_opencv" type="obj_tracker" name="obj_tracker" output="log"/> 
+  
+  <node pkg="smart_warehouse_2" type="abb_pp_task" name="abb_pp_task" output="log"/>
+  
+</launch>

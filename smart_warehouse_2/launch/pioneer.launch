@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+
+<launch>
+
+  <include file="$(find p3dx_move)/launch/moving_map.launch" />
+  
+  
+  <node pkg="p3dx_move" type="pioneer_p3dx_1" name="pioneer_p3dx_1" output="log"/>
+  <node pkg="p3dx_move" type="p3dx_manager" name="p3dx_manager" output="log"/>
+  
+</launch>
