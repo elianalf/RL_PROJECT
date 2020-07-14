@@ -3,6 +3,23 @@
 A ROS/Gazebo Warehouse_2 project for Robotics Lab made by Eliana La Frazia and Andrea Cavaliere (andreacavaliere49@gmail.com and lafrazia.eliana@gmail.com). The pioneer folder is an adaption of the Pioneer model made by Rafael Berkvens and Mario Serna Hernández. 
 More details in the report.
 
+# UPDATES
+```
+update introduces new features. 
+-It is now available to launch the simulation just with two .launch file:
+1) launch the world and  pioneers' node
+$ roslaunch p3dx_move moving_map.launch
+using the parameter twopioneer(boolean parameter) you can choose to simulate the warehouse with 1 or 2 pioneers( obviously this will influence the box management policy)
+2) launch the camera and manipulator node
+$ roslaunch p3dx_move manipulator.launch
+
+-The camera node now has a better and smarter policy to choose the box to pick (see the report for details).
+-The manipulator movements are now smoother and faster.
+-The robots adapt to every movement of the object in the world.
+-any position change can be done in the .launch file
+
+
+```
 
 # To install:
 ```
