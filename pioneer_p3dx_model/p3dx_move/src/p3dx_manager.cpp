@@ -37,8 +37,6 @@ int blue_index;
 int counter_red;
 int counter_blue;
 
-
-
 //TUNING TRUE OR FALSE
 void load_param( bool & p, bool def, std::string name ) {
   ros::NodeHandle n_param("~");
@@ -75,6 +73,7 @@ class Pioneer_manager{
 		ros::Publisher p3dx_2_pub;
 		bool p3dx_1_ready;
 		bool p3dx_2_ready;
+		bool Twopioneer;
 		void managing();
 		std::vector<std::string> red_names;
 		std::vector<std::string> blue_names;
@@ -108,7 +107,8 @@ Pioneer_manager::Pioneer_manager(){
 	counter_blue=0;
 	p3dx_1_ready=true;
 	bool buffer=true;
-	load_param(p3dx_2_ready, buffer, "Twopioneer" );
+	load_param(Twopioneer, buffer, "Twopioneer" );
+	p3dx_2_ready=Twopioneer;
 	
 	
 	double buff_coordinate=0.0;
@@ -190,99 +190,186 @@ void Pioneer_manager::managing(){
 	bool still_a_red_box=true;
 	bool still_a_blue_box=true;
 	ROS_INFO("starting managing");
-	while(ros::ok()){
-		
-		if((!red_names.empty())){
-			try{	
-				if(red_names.at(red_index).find("red")) std::cout<<"red box, its names is:"<<red_names[red_index];
-				}
-			catch(const std::out_of_range& out){
-				ROS_INFO("we completed the  red queue");
-				//you already delivered all the boxes, erase the queue
-				red_index=0;
-				red_names.erase(red_names.begin(),red_names.end());
-				red_names.resize(0);
-				still_a_red_box=false;
-			}
-		}
-		else {still_a_red_box=false;}
-		if((!blue_names.empty())){
-			try{
-				if(blue_names.at(blue_index).find("blue")) std::cout<<"blu box, its names is:"<<blue_names[blue_index];
-				}
-			catch(const std::out_of_range& out){
-				ROS_INFO("we completed the  blue queue,waiting for new ones.");
-				//you already delivered all the boxes, erase the queue
-				blue_index=0;
-				blue_names.erase(blue_names.begin(),blue_names.end());
-				blue_names.resize(0);
-				still_a_blue_box=false;
-			}
-		}
-		else {still_a_blue_box=false;}
-			if((still_a_blue_box)||(still_a_red_box)){
+	if(Twopioneer){
+		while(ros::ok()){
 			
-			ROS_INFO("waiting the robots");
-			while((!p3dx_1_ready)&&(!p3dx_2_ready)){r.sleep();}
-			if((p3dx_1_ready)&&(still_a_blue_box)){
-				
-				         ROS_INFO(" blue to p3dx_1.");
-				         
-					 sposta1.model_name = blue_names[blue_index];
-					 sposta1.pose.position.x = 2;   
-					 sposta1.pose.position.y =-4;
-					 sposta1.pose.position.z =0.310;
-					 sposta1.pose.orientation.x = 0;
-					 sposta1.pose.orientation.y =0;
-					 sposta1.pose.orientation.z =0;
-					 sposta1.pose.orientation.w =1;
-					 sposta1.reference_frame="world";
-					 gazebo_pub.publish(sposta1);
-					 usleep(1000000);
-					 virtual_joint(blue_names[blue_index],1,1);
-					 blue_index++;
-					 usleep(100000);
-					// sleep(2);	 
-					p3dx_1_pub.publish(blue_station);
-					goal_p1=blue_station;
-					p3dx_1_ready=false;
-				
-			}
-			if((p3dx_2_ready)&&(still_a_red_box)){
-			
-					 ROS_INFO(" red to p3dx_2.");
-					 sposta2.model_name = red_names[red_index];
-					 sposta2.pose.position.x = 2;   
-					 sposta2.pose.position.y =-3;
-					 sposta2.pose.position.z =0.330;
-					 sposta2.pose.orientation.x = 0;
-					 sposta2.pose.orientation.y =0;
-					 sposta2.pose.orientation.z =0;
-					 sposta2.pose.orientation.w =1;
-					 sposta2.reference_frame="world";
-					 
-					 gazebo_pub.publish(sposta2);
-					 usleep(1000000);
-					 virtual_joint(red_names[red_index],2,1);	 	
-					 usleep(100000);
-					 red_index++;
-					  //sleep(2);		 
-					 p3dx_2_pub.publish(red_station);
-					 goal_p2=red_station;	
-					p3dx_2_ready=false;
-							
+			if((!red_names.empty())){
+				try{	
+					if(red_names.at(red_index).find("red")) std::cout<<"red box, its names is:"<<red_names[red_index];
 					}
+				catch(const std::out_of_range& out){
+					ROS_INFO("we completed the  red queue");
+					//you already delivered all the boxes, erase the queue
+					red_index=0;
+					red_names.erase(red_names.begin(),red_names.end());
+					red_names.resize(0);
+					still_a_red_box=false;
+				}
+			}
+			else {still_a_red_box=false;}
+			if((!blue_names.empty())){
+				try{
+					if(blue_names.at(blue_index).find("blue")) std::cout<<"blu box, its names is:"<<blue_names[blue_index];
+					}
+				catch(const std::out_of_range& out){
+					ROS_INFO("we completed the  blue queue,waiting for new ones.");
+					//you already delivered all the boxes, erase the queue
+					blue_index=0;
+					blue_names.erase(blue_names.begin(),blue_names.end());
+					blue_names.resize(0);
+					still_a_blue_box=false;
+				}
+			}
+			else {still_a_blue_box=false;}
+				if((still_a_blue_box)||(still_a_red_box)){
+				
+				ROS_INFO("waiting the robots");
+				while((!p3dx_1_ready)&&(!p3dx_2_ready)){r.sleep();}
+				if((p3dx_1_ready)&&(still_a_blue_box)){
+					
+						 ROS_INFO(" blue to p3dx_1.");
+						 
+						 sposta1.model_name = blue_names[blue_index];
+						 sposta1.pose.position.x = 2;   
+						 sposta1.pose.position.y =-4;
+						 sposta1.pose.position.z =0.310;
+						 sposta1.pose.orientation.x = 0;
+						 sposta1.pose.orientation.y =0;
+						 sposta1.pose.orientation.z =0;
+						 sposta1.pose.orientation.w =1;
+						 sposta1.reference_frame="world";
+						 gazebo_pub.publish(sposta1);
+						 usleep(1000000);
+						 virtual_joint(blue_names[blue_index],1,1);
+						 blue_index++;
+						 usleep(100000);
+						// sleep(2);	 
+						p3dx_1_pub.publish(blue_station);
+						goal_p1=blue_station;
+						p3dx_1_ready=false;
+					
+				}
+				if((p3dx_2_ready)&&(still_a_red_box)){
+				
+						 ROS_INFO(" red to p3dx_2.");
+						 sposta2.model_name = red_names[red_index];
+						 sposta2.pose.position.x = 2;   
+						 sposta2.pose.position.y =-3;
+						 sposta2.pose.position.z =0.330;
+						 sposta2.pose.orientation.x = 0;
+						 sposta2.pose.orientation.y =0;
+						 sposta2.pose.orientation.z =0;
+						 sposta2.pose.orientation.w =1;
+						 sposta2.reference_frame="world";
+						 
+						 gazebo_pub.publish(sposta2);
+						 usleep(1000000);
+						 virtual_joint(red_names[red_index],2,1);	 	
+						 usleep(100000);
+						 red_index++;
+						  //sleep(2);		 
+						 p3dx_2_pub.publish(red_station);
+						 goal_p2=red_station;	
+						p3dx_2_ready=false;
+								
+						}
+				}
+				else{
+				still_a_red_box=true;
+				still_a_blue_box=true;
+				index=0;
+				red_index=0;
+				blue_index=0;
+				}
+				
+		
+			r.sleep();
+			}
+	}
+	else{
+		bool still_a_box=true;
+		while(ros::ok()){
+			if((!_boxes.empty())){
+				try{
+					if(_boxes.at(index)==0) ROS_INFO("next one is a blue box"); //blue_box
+					else ROS_INFO("next one is a red box");                    //red_box
+					}
+				catch(const std::out_of_range& out){
+					ROS_INFO("we completed the queue,waiting for new ones.");
+					//you already delivered all the boxes, erase the queue
+					index=0;
+					_boxes.erase(_boxes.begin(),_boxes.end());
+					_boxes.resize(0);
+					still_a_box=false;
+				}
+				if(still_a_box){
+				while(!p3dx_1_ready){r.sleep();}
+				ROS_INFO("at least one pioneer is ready");
+				if((_boxes[index]==0)&&(p3dx_1_ready)){
+						 index++; 
+						 ROS_INFO(" blue to p3dx_1.");
+						 sposta1.model_name = blue_names[blue_index];
+						 sposta1.pose.position.x = 2;   
+						 sposta1.pose.position.y =-4;
+						 sposta1.pose.position.z =0.310;
+						 sposta1.pose.orientation.x = 0;
+						 sposta1.pose.orientation.y =0;
+						 sposta1.pose.orientation.z =0;
+						 sposta1.pose.orientation.w =1;
+						 sposta1.reference_frame="world";
+						 gazebo_pub.publish(sposta1);
+						 usleep(1000000);
+						 virtual_joint(blue_names[blue_index],1,1);
+						 blue_index++;
+						 usleep(100000);
+						// sleep(2);	 
+						p3dx_1_pub.publish(blue_station);
+						 sleep(2);
+						goal_p1=blue_station;
+						p3dx_1_ready=false;
+								
+				}
+				else if((_boxes[index]==255)&&(p3dx_1_ready)){
+						 index++;
+						
+						 ROS_INFO(" red to p3dx_1.");
+						 sposta1.model_name = red_names[red_index];
+						 sposta1.pose.position.x = 2;   
+						 sposta1.pose.position.y =-4;
+						 sposta1.pose.position.z =0.330;
+						 sposta1.pose.orientation.x = 0;
+						 sposta1.pose.orientation.y =0;
+						 sposta1.pose.orientation.z =0;
+						 sposta1.pose.orientation.w =1;
+						 sposta1.reference_frame="world";
+						 
+						 gazebo_pub.publish(sposta1);
+						 usleep(1000000);
+						 virtual_joint(red_names[red_index],1,1);	 	
+						 usleep(100000);
+						 red_index++;
+						  //sleep(2);	 
+						 p3dx_1_pub.publish(red_station);
+						 sleep(2);
+						 goal_p1=red_station;
+						 p3dx_1_ready=false;
+						 
+						}
+				}
 			}
 			else{
-			still_a_red_box=true;
-			still_a_blue_box=true;
+			still_a_box=true;
 			index=0;
-			red_index=0;
-			blue_index=0;
 			}
-			
+				
+		
+			r.sleep();
+		}
 	
-		r.sleep();
+	
+	
+	
+	
 	}
 	
 	
@@ -294,9 +381,9 @@ void Pioneer_manager::p3dx_1_list(std_msgs::Int8 result){
  if(result.data==2){p3dx_1_ready=true; ROS_INFO("p3dx_1 is back.");}
  else if(result.data==1){
 	virtual_joint(sposta1.model_name,1,2);	 	
-	usleep(100000);
+	usleep(1000);
  	counter_blue++;
- 	if(counter_blue==7){bluestation_y=-10.832; bluestation_x+=0.3;}
+ 	if(counter_blue==7){bluestation_y=-10.832; bluestation_x+=0.3;counter_blue=0;}
  	sposta1.pose.position.x = bluestation_x;   
 	bluestation_y+=0.3;
 	sposta1.pose.position.z =0.310;
@@ -314,23 +401,25 @@ void Pioneer_manager::p3dx_1_list(std_msgs::Int8 result){
 }
 
 void Pioneer_manager::p3dx_2_list(std_msgs::Int8 result){
-  if(result.data==2) {p3dx_2_ready=true;  ROS_INFO("p3dx_2 is back.");}
+if(result.data==2){p3dx_2_ready=true; ROS_INFO("p3dx_2 is back.");}
  else if(result.data==1){
- 	virtual_joint(sposta2.model_name,2,2);
- 	usleep(100000);
-        counter_red++;
- 	if(counter_red==7){redstation_y=8.232; redstation_x+=0.3;}
- 	sposta1.pose.position.x = redstation_x;
+ 	
+	virtual_joint(sposta2.model_name,2,2);	 	
+	usleep(1000);
+	
+        ROS_INFO("p3dx_2 is coming back.");
+ 	counter_red++;
+ 	if(counter_red==7){redstation_y=8.232; redstation_x+=0.3;counter_red=0;}
+ 	sposta2.pose.position.x = redstation_x;   
 	redstation_y+=0.3;
 	sposta2.pose.position.z =0.310;
 	sposta2.pose.position.y = redstation_y;
 	sposta2.reference_frame="world";
-	
-	gazebo_pub.publish(sposta2);
-	usleep(100000);
- 	ROS_INFO("p3dx_2 is coming back.");
- 	goal_p2=p3dx_2_idle;
- 	}
+	ROS_INFO("the x position is : %.2f",sposta2.pose.position.x);
+ 	gazebo_pub.publish(sposta2);
+        goal_p2=p3dx_2_idle;
+        usleep(100000);
+  }
  else{ //retry
  		p3dx_2_pub.publish(goal_p2);
  

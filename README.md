@@ -112,4 +112,8 @@ to create a new map, first launch the gazebo world (step 1) then in two separate
 $ roslaunch p3dx_move moving_no_map.launch
 $ roslaunch p3dx_move rviz.launch
 
+
+
+
+to make the "ray beam" disappear during the simulation go to pioneer_p3dx_model/p3dx_description/urdf/pioneer3dx.gazebo, row 97 and set "visualize" to false.
 ```

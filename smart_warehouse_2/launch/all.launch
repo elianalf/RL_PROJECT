@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<launch>
+<arg name="twopioneer" default="true"/>
+<!--first the world-->
+  <include file="$(find smart_warehouse_2)/launch/warehouse2.launch">
+	<arg name="Twopioneer" value="$(arg twopioneer)" />  
+  </include>
+  
+  
+  
+<!--  
+  <include file="$(find smart_warehouse_2)/launch/pioneer.launch">
+  	<arg name="Twopioneer" value="$(arg twopioneer)"/>
+  </include>
+then the pioneer/pioneers-->
+  <include file="$(find p3dx_move)/launch/moving_map.launch" />
+  <node pkg="p3dx_move" type="pioneer_p3dx_1" name="pioneer_p3dx_1" output="log"/>
+  
+  <group if="$(arg twopioneer)">
+  	<node pkg="p3dx_move" type="pioneer_p3dx_2" name="pioneer_p3dx_2" output="log"/>
+  	<include file="$(find p3dx_move)/launch/moving_map2.launch" />      
+  </group>
+  
+  <node pkg="p3dx_move" type="p3dx_manager" name="p3dx_manager" output="log"/>
+  
+  
+  
+<!--finally the camera and the manipulator
+  <include file="$(find abb_irb6640_gazebo)/launch/moveit_planning_execution_gazebo.launch" />
+  
+  <node pkg="smartwarehouse_opencv" type="obj_tracker" name="obj_tracker" output="screen"/> 
+  
+  <node pkg="smart_warehouse_2" type="abb_pp_task" name="abb_pp_task" output="screen"/>
+  
+-->
+
+</launch>

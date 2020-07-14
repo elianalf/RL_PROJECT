@@ -8,8 +8,8 @@ using namespace std;
 using namespace cv;
 using namespace tf;
 
-bool first_col;
-
+string next_one;
+bool both;
 int low_r = 5;
 int low_g = 0;
 int low_b = 0;
@@ -122,8 +122,6 @@ void load_param( bool & p, bool def, string name ) {
 
 
 box_tracking::box_tracking() {
-    
-    first_col=true;
     string _img_topic;
     string _depth_img_topic;
     string _cam_info_topic;
@@ -268,8 +266,9 @@ void box_tracking::track_rectangle() {
    vector<Point> rectangle_center_red;
    double cx, cy, fx_inv, fy_inv;
    vector<double> cx_c, cy_c, cz_c;
+   vector<double> cx_c_buffer, cy_c_buffer, cz_c_buffer;
    float zd_c1;
-   float zd_c2;
+   float zd_c_buffer;
    Matrix3x3 Rot_matrix_;
     
    while(ros::ok()) {
@@ -319,7 +318,7 @@ void box_tracking::track_rectangle() {
         cx_c[p] = (zd_c1) * ( (rectangle_center_red[p].x - cx) * fx_inv );
         cy_c[p] = (zd_c1) * ( (rectangle_center_red[p].y - cy) * fy_inv );
         cz_c[p] = zd_c1;
-        
+        both=false;
         }
           pos_goal.color = "red";
         break;
@@ -338,12 +337,13 @@ void box_tracking::track_rectangle() {
 	cx_c[p] = (zd_c1) * ( (rectangle_center_blue[p].x - cx) * fx_inv );
 	cy_c[p] = (zd_c1) * ( (rectangle_center_blue[p].y - cy) * fy_inv );
 	cz_c[p] = zd_c1;
-	
+	both=false;
 	}
           pos_goal.color = "blue";
 	break;
 	case 3 : //both exist; choose  the most numerous
 	cout<<"BOTH BLUES AND REDS";
+        both=true;
         if(rectangle_center_blue.size()>rectangle_center_red.size()){ //choose blue
         cx_c.resize(rectangle_center_blue.size());  
 	cy_c.resize(rectangle_center_blue.size());  
@@ -383,13 +383,82 @@ void box_tracking::track_rectangle() {
         }
         break;
         }
-        
-        //once you choose the color, choose the nearest box
-        int chosen=0;
-        for(int p=1;p<rectangle_center_red.size();p++){
-        if(cz_c[p]>cz_c[chosen]){chosen=p;}
+	int chosen=0;        
+		if(pos_goal.color == "red"){
+		//once you choose the color, choose the nearest box
+		
+		for(int p=1;p<rectangle_center_red.size();p++){
+			if(cz_c[p]>cz_c[chosen]){chosen=p;}
+		}
+		
+		//we are almost there, check if there are any other  blue box above the chosen red one
+		if(both){
+			cx_c_buffer.resize(rectangle_center_blue.size());  
+			cy_c_buffer.resize(rectangle_center_blue.size());  
+			cz_c_buffer.resize(rectangle_center_blue.size());
+			for(int p=0;p<rectangle_center_blue.size();p++){  
+			cx = _cam_cameraMatrix->at<double>(0,2);
+			cy = _cam_cameraMatrix->at<double>(1,2);
+			fx_inv = 1.0 / _cam_cameraMatrix->at<double>(0,0);
+			fy_inv = 1.0 / _cam_cameraMatrix->at<double>(1,1);
+
+			zd_c1 = depth.at<float>(rectangle_center_blue[p].y,rectangle_center_blue[p].x);
+			cx_c_buffer[p] = (zd_c1) * ( (rectangle_center_blue[p].x - cx) * fx_inv );
+			cy_c_buffer[p] = (zd_c1) * ( (rectangle_center_blue[p].y - cy) * fy_inv );
+			cz_c_buffer[p] = zd_c1;
+			}
+			int lo=0;
+			bool found=false;
+			while((lo<=rectangle_center_blue.size()) && !found){
+				if(((cx_c[chosen]-cx_c_buffer[lo])<0.2)&&((cy_c[chosen]-cy_c_buffer[lo])<0.2)&&(cz_c[chosen]<cx_c_buffer[lo])){
+					found=true;
+					pos_goal.color="blue";
+					cx_c[chosen]=cx_c_buffer[lo];
+					cy_c[chosen]=cy_c_buffer[lo];
+					cz_c[chosen]=cz_c_buffer[lo];
+				}
+				lo++;
+			}
+		}
         }
-        
+        else{
+        	//once you choose the color, choose the nearest box
+                for(int p=1;p<rectangle_center_blue.size();p++){
+        		if(cz_c[p]>cz_c[chosen]){chosen=p;}
+        	}
+        	
+        	//we are almost there, check if there are any other  red box above the chosen blue one
+		if(both){
+			cx_c_buffer.resize(rectangle_center_red.size());  
+			cy_c_buffer.resize(rectangle_center_red.size());  
+			cz_c_buffer.resize(rectangle_center_red.size());
+			for(int p=0;p<rectangle_center_red.size();p++){  
+			cx = _cam_cameraMatrix->at<double>(0,2);
+			cy = _cam_cameraMatrix->at<double>(1,2);
+			fx_inv = 1.0 / _cam_cameraMatrix->at<double>(0,0);
+			fy_inv = 1.0 / _cam_cameraMatrix->at<double>(1,1);
+
+			zd_c1 = depth.at<float>(rectangle_center_red[p].y,rectangle_center_red[p].x);
+			cx_c_buffer[p] = (zd_c1) * ( (rectangle_center_red[p].x - cx) * fx_inv );
+			cy_c_buffer[p] = (zd_c1) * ( (rectangle_center_red[p].y - cy) * fy_inv );
+			cz_c_buffer[p] = zd_c1;
+			}
+			int lo=0;
+			bool found=false;
+			while((lo<=rectangle_center_red.size()) && !found){
+				if(((cx_c[chosen]-cx_c_buffer[lo])<0.2)&&((cy_c[chosen]-cy_c_buffer[lo])<0.2)&&(cz_c[chosen]<cx_c_buffer[lo])){
+					found=true;
+					pos_goal.color="red";
+					cx_c[chosen]=cx_c_buffer[lo];
+					cy_c[chosen]=cy_c_buffer[lo];
+					cz_c[chosen]=cz_c_buffer[lo];
+				}
+				lo++;
+			}
+		}
+        	
+        	
+        }
         
 
         
