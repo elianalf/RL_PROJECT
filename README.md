@@ -7,11 +7,11 @@ More details in the report.
 ```
 update introduces new features. 
 -It is now available to launch the simulation just with two .launch file:
-1) launch the world and  pioneers' node
-$ roslaunch p3dx_move moving_map.launch
+1) launch the world and  pioneers' nodes
+$ roslaunch smart_warehouse_2 all.launch
 using the parameter twopioneer(boolean parameter) you can choose to simulate the warehouse with 1 or 2 pioneers( obviously this will influence the box management policy)
 2) launch the camera and manipulator node
-$ roslaunch p3dx_move manipulator.launch
+$ roslaunch smart_warehouse_2 manipulator.launch
 
 -The camera node now has a better and smarter policy to choose the box to pick (see the report for details).
 -The manipulator movements are now smoother and faster.
