@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<launch>
+
+<!--just  pioneers params-->
+  <param name="x_red" value="$(arg x_red)">
+  <param name="y_red" value="$(arg y_red)">
+  <param name="x_blue" value="$(arg x_blue)">
+  <param name="y_blue" value="$(arg y_blue)">
+  
+  
+</launch>

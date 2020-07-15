@@ -26,11 +26,21 @@
   
   <arg name="Twopioneer" default="true"/>
   
+  
+  <!-- pioneers initial positions-->
   <arg name="p3dx_1_x" default="2.0"/>
   <arg name="p3dx_1_y" default="-4.0"/>
   
   <arg name="p3dx_2_x" default="2.0"/>
   <arg name="p3dx_2_y" default="-3.0"/>
+  
+  
+  <!--  station parameters : notice that this are the exact pose values of the station  in the gazebo simulation, the pioneers will know how to reach it and where to stop-->
+  
+  <arg name="x_red" default="0"/>
+  <arg name="y_red" default="9.6"/> 
+  <arg name="x_blue" default="0"/>
+  <arg name="y_blue" default="-9.6"/>
   
   <env name="GAZEBO_MODEL_PATH" value="$(find smart_warehouse_2)/models:$(optenv GAZEBO_MODEL_PATH)" />
 
@@ -47,11 +57,19 @@
   <param name="rgbd_roll" value="$(arg rgbd_roll)" />
   <param name="rgbd_pitch" value="$(arg rgbd_pitch)" />
   
+  
   <param name="Twopioneer" value="$(arg Twopioneer)"/>
+  
   <param name="p3dx_1_x" value="$(arg p3dx_1_x)"/>
   <param name="p3dx_1_y" value="$(arg p3dx_1_y)"/>
   <param name="p3dx_2_x" value="$(arg p3dx_2_x)"/>
   <param name="p3dx_2_y" value="$(arg p3dx_2_y)"/>
+  
+  <param name="x_red" value="$(arg x_red)"/>
+  <param name="y_red" value="$(arg y_red)"/>
+  <param name="x_blue" value="$(arg x_blue)"/>
+  <param name="y_blue" value="$(arg y_blue)"/>
+  
   <!-- remap topics to conform to ROS-I specifications -->
   <remap from="/arm_controller/follow_joint_trajectory" to="/joint_trajectory_action" />
   <remap from="/arm_controller/state" to="/feedback_states" />
@@ -106,4 +124,6 @@
   
   
   <node pkg="tf" type="static_transform_publisher" name="camera_lens_tf" args="0 0 0 -1.57 0 -1.57 /sensor /rgbd_link 100" />
+  
+  
 </launch>

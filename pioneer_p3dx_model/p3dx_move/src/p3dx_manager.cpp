@@ -23,11 +23,11 @@ gazebo_msgs::ModelState sposta1;
 gazebo_msgs::ModelState sposta2;
 geometry_msgs::Pose blue_station;
 geometry_msgs::Pose red_station;
-geometry_msgs::Pose p3dx_1_idle;
-geometry_msgs::Pose p3dx_2_idle;
 
-geometry_msgs::Pose goal_p1;
-geometry_msgs::Pose goal_p2;
+double x_red;
+double y_red;
+double x_blue;
+double y_blue;
 double redstation_y ;
 double bluestation_y ;
 double redstation_x ;
@@ -71,6 +71,10 @@ class Pioneer_manager{
 		ros::Publisher gazebo_pub;
 		ros::Publisher p3dx_1_pub;
 		ros::Publisher p3dx_2_pub;
+		geometry_msgs::Pose p3dx_1_idle;
+		geometry_msgs::Pose p3dx_2_idle;	
+		geometry_msgs::Pose goal_p1;
+		geometry_msgs::Pose goal_p2;
 		bool p3dx_1_ready;
 		bool p3dx_2_ready;
 		bool Twopioneer;
@@ -99,10 +103,10 @@ Pioneer_manager::Pioneer_manager(){
 	sposta1.pose.orientation.y =0;
 	sposta1.pose.orientation.z =0;
 	sposta1.pose.orientation.w =1;
-	redstation_y = 8.232;
-	bluestation_y = -10.832;
-	redstation_x = -1.29;
-	bluestation_x = -1.15;
+	redstation_y = y_red-1.368;// 8.232;
+	bluestation_y = y_blue -1.232; // -10.832;
+	redstation_x = x_red -1.29;
+	bluestation_x = x_blue -1.15;
 	counter_red=0;
 	counter_blue=0;
 	p3dx_1_ready=true;
@@ -120,6 +124,13 @@ Pioneer_manager::Pioneer_manager(){
 	p3dx_2_idle.position.x=buff_coordinate;
 	load_param(buff_coordinate, 0.0, "p3dx_2_y" );
 	p3dx_2_idle.position.y=buff_coordinate;
+	
+	
+	
+	
+	p3dx_1_idle.orientation.w = 6.0;
+	p3dx_2_idle.orientation.w = 6.0;
+	
 	
 ROS_INFO("p3dx_2_ready is : %d",p3dx_2_ready);
 	
@@ -452,12 +463,15 @@ int main(int argc, char** argv) {
 	ROS_INFO("here in main");
 	
 	
-	p3dx_1_idle.orientation.w = 6.0;
-	p3dx_2_idle.orientation.w = 6.0;
-	
 	red_index=0;
 	blue_index=0;
-		
+	
+	load_param(x_red, 0.0, "x_red" );
+	load_param(y_red, 9.6, "y_red" );
+	load_param(x_blue, 0.0, "x_blue" );
+	load_param(y_blue, -9.6, "y_blue" );	
+	
+	
 	Pioneer_manager p3dx_m;
 	
 	ROS_INFO("here in main");
